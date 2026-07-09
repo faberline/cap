@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 #![allow(dead_code)]
 //! Same-name command planner for `cap <cmd>`.
@@ -17,25 +17,25 @@ use std::{
 use anyhow::{Context, Result};
 
 const SORT_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
-// @spec projects/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 const LS_NATIVE_MIN_ENTRIES: usize = 1024;
 const FIND_NATIVE_MIN_ENTRIES: usize = 512;
 const SED_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 const SED_NATIVE_MIN_SPAN_LINES: usize = 1024;
 const GREP_NATIVE_MIN_FILES: usize = 64;
 const GREP_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
-// @spec projects/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 const WC_NATIVE_MIN_FILES: usize = 64;
 const WC_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommandPlan {
     External(ExternalPlan),
     Native(NativePlan),
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExternalPlan {
     pub program: String,
@@ -47,14 +47,14 @@ pub struct ExternalPlan {
     pub fallback: Option<String>,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExternalImplementation {
     Original,
     Replacement,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NativePlan {
     pub command: NativeCommand,
@@ -63,7 +63,7 @@ pub struct NativePlan {
     pub reason: String,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NativeCommand {
     Ls(LsPlan),
@@ -74,26 +74,26 @@ pub enum NativeCommand {
     WcLines(WcLinesPlan),
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LsPlan {
     pub path: String,
     pub all: bool,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SortPlan {
     pub file: String,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CatPlan {
     pub files: Vec<String>,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FindPlan {
     pub root: String,
@@ -101,14 +101,14 @@ pub struct FindPlan {
     pub name_pattern: Option<String>,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FindType {
     File,
     Dir,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SedPrintPlan {
     pub file: String,
@@ -116,13 +116,13 @@ pub struct SedPrintPlan {
     pub end_line: usize,
 }
 
-// @spec projects/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WcLinesPlan {
     pub files: Vec<String>,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 impl CommandPlan {
     pub fn explain(&self) -> String {
         match self {
@@ -163,7 +163,7 @@ impl CommandPlan {
     }
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn plan(command: &[String], label: Option<String>) -> CommandPlan {
     plan_with_tool_resolver(command, label, command_on_path)
 }
@@ -171,7 +171,7 @@ pub fn plan(command: &[String], label: Option<String>) -> CommandPlan {
 /// Plan one Bash command string. Simple shell-free strings are parsed into argv
 /// and routed through the same replacement planner as `cap <cmd>`; strings that
 /// need shell semantics stay under `bash -c`.
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn plan_shell(command: &str, label: Option<String>) -> CommandPlan {
     let original = command.trim().to_string();
     let planned_label = label.or_else(|| Some(original.clone()));
@@ -390,7 +390,7 @@ fn plan_sed(args: &[String], label: Option<String>, original: &str) -> Option<Na
     })
 }
 
-// @spec projects/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn plan_wc(args: &[String], label: Option<String>, original: &str) -> Option<NativePlan> {
     if args.len() < 2 || args[0] != "-l" {
         return None;
@@ -513,7 +513,7 @@ fn plan_grep_replacement(
     })
 }
 
-/// @spec projects/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+/// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 fn dir_entries_at_least(path: &Path, min: usize, include_hidden: bool) -> bool {
     let Ok(entries) = fs::read_dir(path) else {
         return false;
@@ -532,7 +532,7 @@ fn dir_entries_at_least(path: &Path, min: usize, include_hidden: bool) -> bool {
     false
 }
 
-/// @spec projects/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+/// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 fn tree_entries_at_least(root: &Path, min: usize) -> bool {
     let mut count = 0usize;
     let mut stack = vec![root.to_path_buf()];
@@ -558,7 +558,7 @@ fn tree_entries_at_least(root: &Path, min: usize) -> bool {
     false
 }
 
-/// @spec projects/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+/// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 fn grep_workload_at_least(root: &Path, min_files: usize, min_bytes: u64) -> bool {
     let mut files = 0usize;
     let mut bytes = 0u64;
@@ -585,7 +585,7 @@ fn grep_workload_at_least(root: &Path, min_files: usize, min_bytes: u64) -> bool
     false
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn run_native(plan: &NativePlan) -> Result<ExitCode> {
     let mut stdout = io::stdout().lock();
     let mut stderr = io::stderr().lock();
@@ -789,7 +789,7 @@ fn run_sed_print(
     Ok(0)
 }
 
-// @spec projects/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_wc_lines(plan: &WcLinesPlan, stdout: &mut dyn Write, stderr: &mut dyn Write) -> Result<i32> {
     let mut total = 0u64;
     let mut exit = 0;
@@ -854,7 +854,7 @@ fn glob_match(pattern: &str, text: &str) -> bool {
     inner(pattern.as_bytes(), text.as_bytes())
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn render_argv(command: &[String]) -> String {
     match command.split_first() {
         Some((program, args)) => render_command(program, args),
@@ -862,7 +862,7 @@ pub fn render_argv(command: &[String]) -> String {
     }
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn render_command(program: &str, args: &[String]) -> String {
     std::iter::once(program.to_string())
         .chain(args.iter().map(|arg| shell_quote_arg(arg)))

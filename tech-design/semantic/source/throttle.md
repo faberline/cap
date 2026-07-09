@@ -1,6 +1,6 @@
 ---
 id: cap-source-throttle
-summary: Source replay payload for projects/cap/src/throttle.rs
+summary: Source replay payload for apps/cap/src/throttle.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: projects/cap/src/throttle.rs
+# Source TD: apps/cap/src/throttle.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,23 +68,23 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `Lease` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `ReleaseOutcome` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `RssLookup` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `Throttle` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `TickAction` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `active_child_pids` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `attach_pid` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `config` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `is_under_pause_pressure` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `kill_floor_gb` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `new` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `pause_floor_gb` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `register` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `release` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `snapshot` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `tick` | public Rust symbol in `projects/cap/src/throttle.rs` |
-| `wait_for_capacity` | public Rust symbol in `projects/cap/src/throttle.rs` |
+| `Lease` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `ReleaseOutcome` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `RssLookup` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `Throttle` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `TickAction` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `active_child_pids` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `attach_pid` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `config` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `is_under_pause_pressure` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `kill_floor_gb` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `new` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `pause_floor_gb` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `register` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `release` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `snapshot` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `tick` | public Rust symbol in `apps/cap/src/throttle.rs` |
+| `wait_for_capacity` | public Rust symbol in `apps/cap/src/throttle.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -130,7 +130,7 @@ use crate::protocol::{
 /// `tick()` can be awaited from the tokio sampler task.
 pub type RssLookup<'a> = &'a (dyn Fn(i32) -> Option<u64> + Send + Sync);
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug)]
 pub struct Lease {
     pub id: LeaseId,
@@ -189,7 +189,7 @@ struct State {
     was_under_pressure: bool,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct Throttle {
     cfg: Config,
     /// Memory free-GB floor that triggers pause (back-pressure +
@@ -214,14 +214,14 @@ pub struct Throttle {
 
 /// Result of releasing a lease: the kill diagnostic (if cap killed it)
 /// plus the run-log record (if the command ever actually started).
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug)]
 pub struct ReleaseOutcome {
     pub kill_envelope: Option<KillEnvelope>,
     pub record: Option<RunRecord>,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone)]
 pub enum TickAction {
     Idle,
@@ -261,7 +261,7 @@ pub enum TickAction {
     KilledAllPaused(Vec<LeaseId>),
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Throttle {
     /// Build a throttler with both protection floors already resolved
     /// (daemon does the derivation from percentages + absolute floor).
@@ -1753,12 +1753,12 @@ mod tests {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "projects/cap/src/throttle.rs"
+  - path: "apps/cap/src/throttle.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to projects/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-throttle-rs-source-replay-superseded>"

@@ -1,6 +1,6 @@
 ---
 id: semantic-cap-tests
-summary: Semantic coverage for "projects/cap/tests"
+summary: Semantic coverage for "apps/cap/tests"
 fill_sections: [schema, unit-test, changes]
 capability_refs:
   - id: agent-hook-installation
@@ -37,11 +37,11 @@ capability_refs:
 ```yaml
 semantic_domain:
   key: "cap/tests"
-  source_group: "projects/cap/tests"
+  source_group: "apps/cap/tests"
   coverage_kind: semantic
   evidence:
     source_units:
-      - path: "projects/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
+      - path: "apps/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
         language: "rust"
         ownership_state: "codegen"
         generator_primitives: ["service_method", "test_case"]
@@ -54,8 +54,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "test"
           section_type: "unit-test"
-          domain: "projects/cap/tests"
-      - path: "projects/cap/tests/behavior_cap_agent_hook_installation.rs"
+          domain: "apps/cap/tests"
+      - path: "apps/cap/tests/behavior_cap_agent_hook_installation.rs"
         language: "rust"
         ownership_state: "codegen"
         generator_primitives: ["service_method", "test_case"]
@@ -68,8 +68,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "test"
           section_type: "unit-test"
-          domain: "projects/cap/tests"
-      - path: "projects/cap/tests/behavior_cap_command_lease_throttling.rs"
+          domain: "apps/cap/tests"
+      - path: "apps/cap/tests/behavior_cap_command_lease_throttling.rs"
         language: "rust"
         ownership_state: "codegen"
         generator_primitives: ["service_method", "test_case"]
@@ -82,8 +82,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "test"
           section_type: "unit-test"
-          domain: "projects/cap/tests"
-      - path: "projects/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
+          domain: "apps/cap/tests"
+      - path: "apps/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
         language: "rust"
         ownership_state: "codegen"
         generator_primitives: ["service_method", "test_case"]
@@ -96,8 +96,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "test"
           section_type: "unit-test"
-          domain: "projects/cap/tests"
-      - path: "projects/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
+          domain: "apps/cap/tests"
+      - path: "apps/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
         language: "rust"
         ownership_state: "codegen"
         generator_primitives: ["service_method", "test_case"]
@@ -110,8 +110,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "test"
           section_type: "unit-test"
-          domain: "projects/cap/tests"
-      - path: "projects/cap/tests/behavior_cap_command_replacement_parity.rs"
+          domain: "apps/cap/tests"
+      - path: "apps/cap/tests/behavior_cap_command_replacement_parity.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method", "test_case"]
@@ -187,7 +187,7 @@ semantic_domain:
           ecosystem: "rust"
           role: "test"
           section_type: "unit-test"
-          domain: "projects/cap/tests"
+          domain: "apps/cap/tests"
 ```
 
 ## Unit Test
@@ -200,12 +200,12 @@ coverage_kind: semantic
 strategy: preserve observed source behavior while semantic coverage is promoted toward generator primitives
 evidence:
   source_tests:
-    - path: "projects/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
-    - path: "projects/cap/tests/behavior_cap_agent_hook_installation.rs"
-    - path: "projects/cap/tests/behavior_cap_command_lease_throttling.rs"
-    - path: "projects/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
-    - path: "projects/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
-    - path: "projects/cap/tests/behavior_cap_command_replacement_parity.rs"
+    - path: "apps/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
+    - path: "apps/cap/tests/behavior_cap_agent_hook_installation.rs"
+    - path: "apps/cap/tests/behavior_cap_command_lease_throttling.rs"
+    - path: "apps/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
+    - path: "apps/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
+    - path: "apps/cap/tests/behavior_cap_command_replacement_parity.rs"
 ---
 requirementDiagram
 
@@ -220,71 +220,71 @@ element UT_SOURCE_TESTS {
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "projects/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
+  - path: "apps/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
     action: modify
     section: schema
     description: |
       Existing source behavior is covered by this feature/domain semantic TD.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
+  - path: "apps/cap/tests/behavior_cap_config_logging_and_reap_policy.rs"
     action: modify
     section: unit-test
     description: |
       The behavior test is executable evidence for config, logging, and reap
       policy semantics.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_agent_hook_installation.rs"
+  - path: "apps/cap/tests/behavior_cap_agent_hook_installation.rs"
     action: modify
     section: schema
     description: |
       Existing source behavior is covered by this feature/domain semantic TD.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_agent_hook_installation.rs"
+  - path: "apps/cap/tests/behavior_cap_agent_hook_installation.rs"
     action: modify
     section: unit-test
     description: |
       The behavior test is executable evidence for hook installation semantics.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_command_lease_throttling.rs"
+  - path: "apps/cap/tests/behavior_cap_command_lease_throttling.rs"
     action: modify
     section: schema
     description: |
       Existing source behavior is covered by this feature/domain semantic TD.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_command_lease_throttling.rs"
+  - path: "apps/cap/tests/behavior_cap_command_lease_throttling.rs"
     action: modify
     section: unit-test
     description: |
       The behavior test is executable evidence for command lease throttling
       semantics.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
+  - path: "apps/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
     action: modify
     section: schema
     description: |
       Existing source behavior is covered by this feature/domain semantic TD.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
+  - path: "apps/cap/tests/behavior_cap_daemon_lifecycle_and_status.rs"
     action: modify
     section: unit-test
     description: |
       The behavior test is executable evidence for daemon lifecycle and status
       semantics.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
+  - path: "apps/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
     action: modify
     section: schema
     description: |
       Existing source behavior is covered by this feature/domain semantic TD.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
+  - path: "apps/cap/tests/behavior_cap_hook_auto_command_optimizer_whitelist.rs"
     action: modify
     section: unit-test
     description: |
       The behavior test is executable evidence for same-name command rewrite
       and scout-only bypass semantics.
     impl_mode: hand-written
-  - path: "projects/cap/tests/behavior_cap_command_replacement_parity.rs"
+  - path: "apps/cap/tests/behavior_cap_command_replacement_parity.rs"
     action: modify
     section: schema
     description: |
@@ -292,7 +292,7 @@ changes:
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-tests-behavior-cap-command-replacement-parity-rs>"
-  - path: "projects/cap/tests/behavior_cap_command_replacement_parity.rs"
+  - path: "apps/cap/tests/behavior_cap_command_replacement_parity.rs"
     action: modify
     section: unit-test
     description: |

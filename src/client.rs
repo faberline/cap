@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Client-side: connect to the cap daemon, send Request, parse Response.
 //!
@@ -14,12 +14,12 @@ use tokio::net::UnixStream;
 use crate::paths;
 use crate::protocol::{Request, Response};
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct Client {
     stream: BufReader<UnixStream>,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Client {
     /// Connect to an already-running daemon. Errors if none is listening.
     pub async fn connect() -> Result<Self> {

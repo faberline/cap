@@ -1,6 +1,6 @@
 ---
 id: cap-source-sampler
-summary: Source replay payload for projects/cap/src/sampler.rs
+summary: Source replay payload for apps/cap/src/sampler.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: projects/cap/src/sampler.rs
+# Source TD: apps/cap/src/sampler.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,14 +68,14 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `LoadSampler` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `MemorySampler` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `RssSampler` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `free_gb` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `load_per_core` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `new` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `rss_bytes` | public Rust symbol in `projects/cap/src/sampler.rs` |
-| `total_gb` | public Rust symbol in `projects/cap/src/sampler.rs` |
+| `LoadSampler` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `MemorySampler` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `RssSampler` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `free_gb` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `load_per_core` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `new` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `rss_bytes` | public Rust symbol in `apps/cap/src/sampler.rs` |
+| `total_gb` | public Rust symbol in `apps/cap/src/sampler.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -105,7 +105,7 @@ use std::collections::HashMap;
 
 use sysinfo::{MemoryRefreshKind, Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct MemorySampler {
     sys: System,
 }
@@ -114,12 +114,12 @@ pub struct MemorySampler {
 /// don't pay the cost of scanning the entire process table each tick.
 /// The throttler only needs RSS at kill time, but Slice 3 refreshes
 /// every tick — N is typically ≤ 8 (one entry per active lease).
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct RssSampler {
     sys: System,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl RssSampler {
     pub fn new() -> Self {
         // Start with a bare System; we only ever poke processes.
@@ -159,7 +159,7 @@ impl RssSampler {
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for RssSampler {
     fn default() -> Self {
         Self::new()
@@ -169,12 +169,12 @@ impl Default for RssSampler {
 /// 1-minute load average normalized by core count. > 1.0 means the
 /// machine is oversubscribed; cap's CPU pause floor is a fraction of
 /// that (default 0.80 = "stop submitting once load > 80% of nproc").
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct LoadSampler {
     nproc: f64,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl LoadSampler {
     pub fn new() -> Self {
         // available_parallelism rounds physical+SMT cores the same way
@@ -198,14 +198,14 @@ impl LoadSampler {
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for LoadSampler {
     fn default() -> Self {
         Self::new()
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl MemorySampler {
     pub fn new() -> Self {
         let sys = System::new_with_specifics(
@@ -239,7 +239,7 @@ impl MemorySampler {
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for MemorySampler {
     fn default() -> Self {
         Self::new()
@@ -257,12 +257,12 @@ fn bytes_to_gb(bytes: u64) -> f64 {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "projects/cap/src/sampler.rs"
+  - path: "apps/cap/src/sampler.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to projects/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-sampler-rs-source-replay-superseded>"

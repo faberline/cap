@@ -182,7 +182,7 @@ requirementDiagram
 
 ```yaml
 changes:
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -193,7 +193,7 @@ changes:
       high-volume gate. Small, missing, or unsupported shapes remain External
       Original so behavior stays delegated to the system command.
 
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -203,7 +203,7 @@ changes:
       system `wc -l` success shape, including per-file rows and the multi-file
       total row.
 
-  - path: projects/cap/src/cap_fast_frontend.c
+  - path: apps/cap/src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -213,7 +213,7 @@ changes:
       unsupported for small or unsafe shapes so the public `cap` launcher
       continues through `cap-full` and original-command fallback.
 
-  - path: projects/cap/src/cap_fast_frontend.c
+  - path: apps/cap/src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -222,7 +222,7 @@ changes:
       can prove regular-file safety and large-workload eligibility. Do not add
       arbitrary `wc` option support in this slice.
 
-  - path: projects/cap/tests/behavior_cap_command_replacement_parity.rs
+  - path: apps/cap/tests/behavior_cap_command_replacement_parity.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -231,7 +231,7 @@ changes:
       `cap run "wc -l ..."` success, and fallback/error cases for missing
       paths or unsupported operands.
 
-  - path: projects/cap/benches/command_resources.rs
+  - path: apps/cap/benches/command_resources.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -240,7 +240,7 @@ changes:
       comparing the production C frontend against `/usr/bin/wc` using median
       child CPU time and peak RSS.
 
-  - path: projects/cap/README.md
+  - path: apps/cap/README.md
     action: modify
     section: logic
     impl_mode: hand-written
@@ -249,7 +249,7 @@ changes:
       candidates such as `find ... | xargs wc -l` listed as scout-only until
       shell/pipeline fusion has parity and benchmark proof.
 
-  - path: projects/cap/BENCHMARKS.md
+  - path: apps/cap/BENCHMARKS.md
     action: modify
     section: unit-test
     impl_mode: hand-written

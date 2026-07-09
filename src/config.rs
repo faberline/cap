@@ -1,11 +1,11 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::paths;
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
@@ -16,7 +16,7 @@ pub struct Config {
     pub log: Log,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Protect {
@@ -79,14 +79,14 @@ pub struct Protect {
     pub reap_cooldown_secs: u64,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Defaults {
     /// Priority bump applied to children (higher = lower priority).
     pub nice: i32,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Log {
@@ -96,7 +96,7 @@ pub struct Log {
     pub enabled: bool,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for Protect {
     fn default() -> Self {
         // 80% used = pause (back-pressure new submissions, SIGSTOP-newest).
@@ -122,21 +122,21 @@ impl Default for Protect {
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for Defaults {
     fn default() -> Self {
         Self { nice: 5 }
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for Log {
     fn default() -> Self {
         Self { enabled: true }
     }
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Config {
     pub fn load() -> Result<Self> {
         let path = paths::config_path()?;

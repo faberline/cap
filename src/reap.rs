@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Reap allowlist — narrow carve-out from cap's "lease-only" model.
 //!
@@ -50,7 +50,7 @@ pub const REAP_ALLOWLIST: &[&str] = &[
 /// One process the reap pass picked up. Surfaced in daemon logs and
 /// can be embedded in a follow-up KillEnvelope's note so the agent
 /// sees what cap did on its behalf.
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone)]
 pub struct ReapedProcess {
     pub pid: i32,
@@ -63,13 +63,13 @@ pub struct ReapedProcess {
 /// reuse the internal process map (avoids re-allocating on every call)
 /// and remembers the last scan time so the daemon can debounce
 /// without a free-standing Instant.
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct Reaper {
     sys: System,
     last_scan: Option<std::time::Instant>,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Reaper {
     pub fn new() -> Self {
         Self {
@@ -188,7 +188,7 @@ impl Reaper {
     fn _silence_pid_import(_: Pid) {}
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Default for Reaper {
     fn default() -> Self {
         Self::new()

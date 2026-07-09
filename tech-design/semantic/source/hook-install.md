@@ -1,6 +1,6 @@
 ---
 id: cap-source-hook-install
-summary: Source replay payload for projects/cap/src/hook_install.rs
+summary: Source replay payload for apps/cap/src/hook_install.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: projects/cap/src/hook_install.rs
+# Source TD: apps/cap/src/hook_install.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,9 +68,9 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `Agent` | public Rust symbol in `projects/cap/src/hook_install.rs` |
-| `Scope` | public Rust symbol in `projects/cap/src/hook_install.rs` |
-| `run` | public Rust symbol in `projects/cap/src/hook_install.rs` |
+| `Agent` | public Rust symbol in `apps/cap/src/hook_install.rs` |
+| `Scope` | public Rust symbol in `apps/cap/src/hook_install.rs` |
+| `run` | public Rust symbol in `apps/cap/src/hook_install.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -94,21 +94,21 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_json::{json, Value as JsonValue};
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Agent {
     Claude,
     Codex,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Scope {
     User,
     Project,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub fn run(agent: Agent, scope: Scope, print: bool) -> Result<()> {
     // Use the absolute path so the hook fires correctly even when
     // the parent process's PATH doesn't include cap's install dir.
@@ -358,7 +358,7 @@ enum MergeStatus {
     AlreadyPresent,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl MergeStatus {
     fn describe(&self) -> &'static str {
         match self {
@@ -501,12 +501,12 @@ mod tests {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "projects/cap/src/hook_install.rs"
+  - path: "apps/cap/src/hook_install.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to projects/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-hook-install-rs-source-replay-superseded>"

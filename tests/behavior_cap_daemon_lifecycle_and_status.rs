@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/logic/external-contracts.md#cap-daemon-lifecycle-and-status
+// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-daemon-lifecycle-and-status
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-daemon-lifecycle-and-status

@@ -33,8 +33,8 @@ Set `CAP_BENCH_INCLUDE_CANDIDATES=1` to also print candidate rows without
 making them pass/fail gates. The latest raw JSON and Markdown artifacts are
 written under the cap crate target directory:
 
-- `projects/cap/target/cap-command-resource-bench.json`
-- `projects/cap/target/cap-command-resource-bench.md`
+- `apps/cap/target/cap-command-resource-bench.json`
+- `apps/cap/target/cap-command-resource-bench.md`
 
 Native command promotion is workload-sensitive. Small rows for `ls`, `sort`,
 `grep`, `find`, and `sed -n` are candidate rows: they verify that cap can

@@ -1,6 +1,6 @@
 ---
 id: cap-source-build
-summary: Source coverage for projects/cap/build.rs build provenance stamping.
+summary: Source coverage for apps/cap/build.rs build provenance stamping.
 fill_sections: [source, changes]
 capability_refs:
   - id: standard-agent-cli-operations
@@ -11,7 +11,7 @@ capability_refs:
     rationale: "The build script stamps CAP_TARGET, CAP_GIT_SHA, and CAP_BUILT_AT for cli_std::ToolInfo used by cap llm, upgrade, and issue diagnostics."
 ---
 
-# Source TD: projects/cap/build.rs
+# Source TD: apps/cap/build.rs
 
 ## Source
 <!-- type: source lang: rust -->
@@ -27,7 +27,7 @@ capability_refs:
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "projects/cap/build.rs"
+  - path: "apps/cap/build.rs"
     action: modify
     section: source
     description: |

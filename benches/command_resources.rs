@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/source/projects-cap-benches-command_resources-rs.md#rust-source-unit
+// SPEC-MANAGED: apps/cap/tech-design/semantic/source/projects-cap-benches-command_resources-rs.md#rust-source-unit
 // CODEGEN-BEGIN
 //! Resource benchmarks for same-name `cap <command>` replacements.
 //!
@@ -41,7 +41,7 @@ enum Gate {
     Candidate,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
 impl Gate {
     fn label(self) -> &'static str {
         match self {
@@ -532,7 +532,7 @@ struct Fixture {
     root: PathBuf,
 }
 
-/// @spec projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
+/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
 impl Fixture {
     fn create() -> Result<Self> {
         let dir = tempfile::tempdir().context("creating cap benchmark fixture")?;

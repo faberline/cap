@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#cap-hook-auto-command-optimizer-whitelist
+// SPEC-MANAGED: apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#cap-hook-auto-command-optimizer-whitelist
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-hook-auto-command-optimizer-whitelist

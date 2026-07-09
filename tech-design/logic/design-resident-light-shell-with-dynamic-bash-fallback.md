@@ -164,7 +164,7 @@ requirementDiagram
 
 ```yaml
 changes:
-  - path: projects/cap/src/resident_shell.rs
+  - path: apps/cap/src/resident_shell.rs
     action: create
     section: logic
     impl_mode: hand-written
@@ -174,7 +174,7 @@ changes:
       native command stages in process, and returns a Bash fallback plan for
       unsupported or unproven command strings.
 
-  - path: projects/cap/src/resident_shell.rs
+  - path: apps/cap/src/resident_shell.rs
     action: create
     section: unit-test
     impl_mode: hand-written
@@ -183,7 +183,7 @@ changes:
       byte-for-byte stdout/stderr/exit parity checks against original system
       commands.
 
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -192,7 +192,7 @@ changes:
       resident shell can verify native-stage output without spawning a second
       cap process.
 
-  - path: projects/cap/src/cli.rs
+  - path: apps/cap/src/cli.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -201,14 +201,14 @@ changes:
       before falling back to the existing external managed_run path. Keep argv
       mode behavior unchanged.
 
-  - path: projects/cap/src/lib.rs
+  - path: apps/cap/src/lib.rs
     action: modify
     section: logic
     impl_mode: hand-written
     description: >
       Export the resident shell module inside the cap crate.
 
-  - path: projects/cap/README.md
+  - path: apps/cap/README.md
     action: modify
     section: overview
     impl_mode: hand-written

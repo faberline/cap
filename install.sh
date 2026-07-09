@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
-# SPEC-MANAGED: projects/cap/tech-design/semantic/cap-install-script.md#text-source-unit
+# SPEC-MANAGED: apps/cap/tech-design/semantic/cap-install-script.md#text-source-unit
 # CODEGEN-BEGIN
 # cap installer — downloads the right prebuilt binary from GitHub
 # Releases and drops it on your PATH.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/chrischeng-c4/axiom/main/projects/cap/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/chrischeng-c4/axiom/main/apps/cap/install.sh | sh
 #
 # Env overrides:
 #   CAP_VERSION   tag to install (default: latest cap@* release, e.g. cap@1.0)

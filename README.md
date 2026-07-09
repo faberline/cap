@@ -16,9 +16,9 @@ pauses / resumes / kills the commands you run through it.
 
 Last verified: 2026-06-05
 Production readiness: ready
-Tech design root: `projects/cap/tech-design`
-TD lock: `projects/cap/tech-design/td.lock`
-External-contract inventory: `projects/cap/aw.toml`
+Tech design root: `apps/cap/tech-design`
+TD lock: `apps/cap/tech-design/td.lock`
+External-contract inventory: `apps/cap/aw.toml`
 Source ownership: full codegen, 100.0% (15/15)
 Semantic coverage: 100.0%
 Traceability coverage: 100.0%
@@ -151,7 +151,7 @@ Build + install, then run `cap init`:
 
 ```bash
 # 1. build & put `cap` on your PATH (e.g. ~/.local/bin)
-CAP_INSTALL="$HOME/.local/bin" projects/cap/build.sh debug
+CAP_INSTALL="$HOME/.local/bin" apps/cap/build.sh debug
 
 # 2. wire the PreToolUse hook into your agents (user-global)
 cap init        # installs into BOTH Claude Code and Codex CLI
@@ -312,7 +312,7 @@ RSS as the decision metrics:
 cargo bench -p cap --bench command_resources
 ```
 
-The latest baseline and interpretation live in `projects/cap/BENCHMARKS.md`.
+The latest baseline and interpretation live in `apps/cap/BENCHMARKS.md`.
 
 Narrowing it down:
 

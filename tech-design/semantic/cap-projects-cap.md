@@ -1,6 +1,6 @@
 ---
 id: semantic-cap-projects-cap
-summary: Semantic coverage for "projects/cap"
+summary: Semantic coverage for "apps/cap"
 fill_sections: [schema, changes]
 capability_refs:
   - id: daemon-lifecycle-and-status
@@ -11,19 +11,19 @@ capability_refs:
     rationale: "Project-root build, install, and LLM context artifacts keep cap operable and legible for CLI lifecycle work."
 ---
 
-# Semantic TD: cap/projects/cap
+# Semantic TD: cap/apps/cap
 
 ## Schema
 <!-- type: schema lang: yaml -->
 
 ```yaml
 semantic_domain:
-  key: "cap/projects/cap"
-  source_group: "projects/cap"
+  key: "cap/apps/cap"
+  source_group: "apps/cap"
   coverage_kind: semantic
   evidence:
     source_units:
-      - path: "projects/cap/llms.txt"
+      - path: "apps/cap/llms.txt"
         language: "llms"
         ownership_state: "codegen"
         generator_primitives: ["project_root_llms"]
@@ -32,7 +32,7 @@ semantic_domain:
           ecosystem: "llms"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap"
+          domain: "apps/cap"
 ```
 
 ## Changes
@@ -41,7 +41,7 @@ semantic_domain:
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "projects/cap/llms.txt"
+  - path: "apps/cap/llms.txt"
     action: modify
     section: schema
     description: |

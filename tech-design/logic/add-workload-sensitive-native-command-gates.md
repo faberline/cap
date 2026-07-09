@@ -207,7 +207,7 @@ requirementDiagram
 
 ```yaml
 changes:
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -217,7 +217,7 @@ changes:
       threshold, with probe errors, or with unknown materiality must return an
       External Original plan. Preserve existing shell-sensitive fallback.
 
-  - path: projects/cap/src/cap_fast_frontend.c
+  - path: apps/cap/src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -226,7 +226,7 @@ changes:
       frontend so same-name native fast paths only claim large, material
       workloads and otherwise fall through to cap-full's original-command path.
 
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -236,7 +236,7 @@ changes:
       native or replacement path; shell-free cap run strings make the same
       workload-sensitive decision as argv.
 
-  - path: projects/cap/benches/command_resources.rs
+  - path: apps/cap/benches/command_resources.rs
     action: modify
     section: e2e-test
     impl_mode: hand-written
@@ -246,7 +246,7 @@ changes:
       original-path behavior; large scenarios remain gated by dual-win or an
       explicitly approved RSS-fallback policy.
 
-  - path: projects/cap/tests/behavior_cap_command_replacement_parity.rs
+  - path: apps/cap/tests/behavior_cap_command_replacement_parity.rs
     action: modify
     section: e2e-test
     impl_mode: hand-written
@@ -255,7 +255,7 @@ changes:
       shapes and add regression coverage that below-threshold command shapes
       do not bypass the original command path.
 
-  - path: projects/cap/README.md
+  - path: apps/cap/README.md
     action: modify
     section: overview
     impl_mode: hand-written
@@ -264,7 +264,7 @@ changes:
       Document the threshold policy and make clear that tiny, unknown, or
       unproven workloads keep original-command behavior.
 
-  - path: projects/cap/BENCHMARKS.md
+  - path: apps/cap/BENCHMARKS.md
     action: modify
     section: overview
     impl_mode: hand-written

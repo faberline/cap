@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! The supervised-run helper: run a child as a cap *lease* so the daemon can
 //! throttle it under memory pressure, and hand back the structured outcome.
@@ -17,7 +17,7 @@ use crate::protocol::{AcquireRequest, KillEnvelope, Request, Response};
 use crate::supervisor::{self, SpawnOpts, SpawnSpec};
 
 /// Result of a supervised run.
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct ManagedOutcome {
     /// The child's final exit status.
     pub status: std::process::ExitStatus,
@@ -36,7 +36,7 @@ pub struct ManagedOutcome {
 /// 3. `Spawned` — tell the daemon the PID so it can target it.
 /// 4. wait (the daemon may pause/resume/kill behind our back).
 /// 5. `Release` — report exit; receive a kill envelope iff we were killed.
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub async fn managed_run(
     client: &mut Client,
     spec: SpawnSpec,

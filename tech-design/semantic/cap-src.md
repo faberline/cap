@@ -1,6 +1,6 @@
 ---
 id: semantic-cap-src
-summary: Semantic coverage for "projects/cap/src"
+summary: Semantic coverage for "apps/cap/src"
 fill_sections: [schema, unit-test, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -67,11 +67,11 @@ capability_refs:
 ```yaml
 semantic_domain:
   key: "cap/src"
-  source_group: "projects/cap/src"
+  source_group: "apps/cap/src"
   coverage_kind: semantic
   evidence:
     source_units:
-      - path: "projects/cap/src/hook.rs"
+      - path: "apps/cap/src/hook.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["config_surface", "data_model", "enum_model", "service_method"]
@@ -141,8 +141,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/eventlog.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/eventlog.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method"]
@@ -170,8 +170,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/reap.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/reap.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["config_surface", "data_model", "service_method"]
@@ -211,8 +211,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/config.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/config.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method"]
@@ -252,8 +252,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/lib.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/lib.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["source_unit"]
@@ -308,8 +308,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/client.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/client.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method"]
@@ -337,8 +337,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/managed_run.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/managed_run.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method"]
@@ -357,8 +357,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/paths.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/paths.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["service_method"]
@@ -392,8 +392,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/protocol.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/protocol.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "enum_model"]
@@ -436,8 +436,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/supervisor.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/supervisor.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method"]
@@ -468,8 +468,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/hook_install.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/hook_install.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["enum_model", "service_method"]
@@ -524,8 +524,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/throttle.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/throttle.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "enum_model", "service_method", "ts_type_surface"]
@@ -622,8 +622,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/daemon.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/daemon.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["config_surface", "data_model", "service_method"]
@@ -666,8 +666,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/sampler.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/sampler.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["data_model", "service_method"]
@@ -725,8 +725,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/full_main.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/full_main.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["service_method"]
@@ -739,8 +739,8 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
-      - path: "projects/cap/src/cli.rs"
+          domain: "apps/cap/src"
+      - path: "apps/cap/src/cli.rs"
         language: "rust"
         ownership_state: "handwrite"
         generator_primitives: ["config_surface", "data_model", "enum_model", "service_method"]
@@ -810,7 +810,7 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "projects/cap/src"
+          domain: "apps/cap/src"
 ```
 
 ## Unit Test
@@ -837,7 +837,7 @@ element UT_SOURCE_TESTS {
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "projects/cap/src/hook.rs"
+  - path: "apps/cap/src/hook.rs"
     action: modify
     section: schema
     description: |
@@ -883,7 +883,7 @@ changes:
       /// Wrappers stripped while looking for the "real" first program.
       const PASSTHROUGH_WRAPPERS: &[&str] = &["env", "time", "nice", "nohup", "exec"];
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Copy, PartialEq, Eq)]
       pub enum HookAgent {
           Auto,
@@ -934,7 +934,7 @@ changes:
       
       /// Read JSON from stdin, decide, print JSON to stdout. Always
       /// returns Ok — the binary exits 0 even on malformed input.
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub fn run_bash_hook(agent: HookAgent) -> anyhow::Result<()> {
           let mut buf = String::new();
           std::io::stdin().read_to_string(&mut buf)?;
@@ -1095,7 +1095,7 @@ changes:
       /// the first real token of the script. For a shell invocation we look
       /// inside `-c <script>`; otherwise we just take the basename. Returns a
       /// basename like `cargo` / `pytest` / `bash`.
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub fn effective_program(program: &str, args: &[String]) -> String {
           let base = basename(program);
           if SHELLS.contains(&base) {
@@ -1256,8 +1256,8 @@ changes:
                   "cap run --label='ls -la | wc -l' -- bash -c 'ls -la | wc -l'"
               );
               assert_eq!(
-                  rewrite("cd projects/cap && cargo test").unwrap(),
-                  "cap run --label='cd projects/cap && cargo test' -- bash -c 'cd projects/cap && cargo test'"
+                  rewrite("cd apps/cap && cargo test").unwrap(),
+                  "cap run --label='cd apps/cap && cargo test' -- bash -c 'cd apps/cap && cargo test'"
               );
           }
       
@@ -1340,7 +1340,7 @@ changes:
               // Plain command.
               assert_eq!(ep(&["-c", "cargo test -p cap"]), "cargo");
               // Leading `cd <dir> &&` prefix (the common agent pattern).
-              assert_eq!(ep(&["-c", "cd projects/cap && cargo test"]), "cargo");
+              assert_eq!(ep(&["-c", "cd apps/cap && cargo test"]), "cargo");
               // Chained cd, semicolon separator.
               assert_eq!(ep(&["-c", "cd a; cd b; pytest -k foo"]), "pytest");
               // env wrapper + assignment skipped.
@@ -1381,7 +1381,7 @@ changes:
               assert_eq!(shell_single_quote("a'b"), "'a'\\''b'");
           }
       }
-  - path: "projects/cap/src/eventlog.rs"
+  - path: "apps/cap/src/eventlog.rs"
     action: modify
     section: schema
     description: |
@@ -1414,7 +1414,7 @@ changes:
       
       /// One completed command. Field names are the JSONL schema — keep them
       /// stable; downstream tooling/agents parse this.
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Serialize)]
       pub struct RunRecord {
           /// RFC 3339 timestamp when the command finished (record write time).
@@ -1456,14 +1456,14 @@ changes:
       
       /// Appends [`RunRecord`]s to the daily JSONL file. Cheap to clone-share
       /// across daemon connection tasks (just an enable flag + dir path).
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone)]
       pub struct EventLog {
           enabled: bool,
           dir: Option<PathBuf>,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl EventLog {
           pub fn new(enabled: bool) -> Self {
               // Resolve the dir once; if it can't be resolved we just disable
@@ -1583,7 +1583,7 @@ changes:
               }
           }
       }
-  - path: "projects/cap/src/reap.rs"
+  - path: "apps/cap/src/reap.rs"
     action: modify
     section: schema
     description: |
@@ -1642,7 +1642,7 @@ changes:
       /// One process the reap pass picked up. Surfaced in daemon logs and
       /// can be embedded in a follow-up KillEnvelope's note so the agent
       /// sees what cap did on its behalf.
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone)]
       pub struct ReapedProcess {
           pub pid: i32,
@@ -1655,13 +1655,13 @@ changes:
       /// reuse the internal process map (avoids re-allocating on every call)
       /// and remembers the last scan time so the daemon can debounce
       /// without a free-standing Instant.
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub struct Reaper {
           sys: System,
           last_scan: Option<std::time::Instant>,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Reaper {
           pub fn new() -> Self {
               Self {
@@ -1780,7 +1780,7 @@ changes:
           fn _silence_pid_import(_: Pid) {}
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for Reaper {
           fn default() -> Self {
               Self::new()
@@ -1833,7 +1833,7 @@ changes:
               // protects against (e.g. if sysinfo's process API changes).
           }
       }
-  - path: "projects/cap/src/config.rs"
+  - path: "apps/cap/src/config.rs"
     action: modify
     section: schema
     description: |
@@ -1847,7 +1847,7 @@ changes:
       
       use crate::paths;
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Default, Serialize, Deserialize)]
       pub struct Config {
           #[serde(default)]
@@ -1858,7 +1858,7 @@ changes:
           pub log: Log,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Serialize, Deserialize)]
       #[serde(default)]
       pub struct Protect {
@@ -1921,14 +1921,14 @@ changes:
           pub reap_cooldown_secs: u64,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Serialize, Deserialize)]
       pub struct Defaults {
           /// Priority bump applied to children (higher = lower priority).
           pub nice: i32,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Serialize, Deserialize)]
       #[serde(default)]
       pub struct Log {
@@ -1938,7 +1938,7 @@ changes:
           pub enabled: bool,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for Protect {
           fn default() -> Self {
               // 80% used = pause (back-pressure new submissions, SIGSTOP-newest).
@@ -1964,21 +1964,21 @@ changes:
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for Defaults {
           fn default() -> Self {
               Self { nice: 5 }
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for Log {
           fn default() -> Self {
               Self { enabled: true }
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Config {
           pub fn load() -> Result<Self> {
               let path = paths::config_path()?;
@@ -2105,7 +2105,7 @@ changes:
               );
           }
       }
-  - path: "projects/cap/src/lib.rs"
+  - path: "apps/cap/src/lib.rs"
     action: modify
     section: exports
     description: |
@@ -2165,7 +2165,7 @@ changes:
       - { module: "session_queue", symbols: [] }
       - { module: "supervisor", symbols: [] }
       - { module: "throttle", symbols: [] }
-  - path: "projects/cap/src/hook_install.rs"
+  - path: "apps/cap/src/hook_install.rs"
     action: modify
     section: schema
     description: |
@@ -2192,21 +2192,21 @@ changes:
       use anyhow::{anyhow, Context, Result};
       use serde_json::{json, Value as JsonValue};
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Copy, PartialEq, Eq)]
       pub enum Agent {
           Claude,
           Codex,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone, Copy, PartialEq, Eq)]
       pub enum Scope {
           User,
           Project,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub fn run(agent: Agent, scope: Scope, print: bool) -> Result<()> {
           // Use the absolute path so the hook fires correctly even when
           // the parent process's PATH doesn't include cap's install dir.
@@ -2456,7 +2456,7 @@ changes:
           AlreadyPresent,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl MergeStatus {
           fn describe(&self) -> &'static str {
               match self {
@@ -2591,7 +2591,7 @@ changes:
               assert!(text.contains(cmd));
           }
       }
-  - path: "projects/cap/src/throttle.rs"
+  - path: "apps/cap/src/throttle.rs"
     action: modify
     section: schema
     description: |
@@ -2638,10 +2638,10 @@ changes:
       /// PID is unknown / dead. Slice 2 callers pass `|_| None`; Slice 3
       /// passes a `sysinfo`-backed lookup. `Send + Sync` is required so
       /// `tick()` can be awaited from the tokio sampler task.
-      /// @spec projects/cap/tech-design/semantic/source/throttle.md#source
+      /// @spec apps/cap/tech-design/semantic/source/throttle.md#source
       pub type RssLookup<'a> = &'a (dyn Fn(i32) -> Option<u64> + Send + Sync);
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug)]
       pub struct Lease {
           pub id: LeaseId,
@@ -2700,7 +2700,7 @@ changes:
           was_under_pressure: bool,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub struct Throttle {
           cfg: Config,
           /// Memory free-GB floor that triggers pause (back-pressure +
@@ -2725,14 +2725,14 @@ changes:
       
       /// Result of releasing a lease: the kill diagnostic (if cap killed it)
       /// plus the run-log record (if the command ever actually started).
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug)]
       pub struct ReleaseOutcome {
           pub kill_envelope: Option<KillEnvelope>,
           pub record: Option<RunRecord>,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Debug, Clone)]
       pub enum TickAction {
           Idle,
@@ -2772,7 +2772,7 @@ changes:
           KilledAllPaused(Vec<LeaseId>),
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Throttle {
           /// Build a throttler with both protection floors already resolved
           /// (daemon does the derivation from percentages + absolute floor).
@@ -4256,7 +4256,7 @@ changes:
               assert!((snap.load_pause_floor - 0.8).abs() < 0.01);
           }
       }
-  - path: "projects/cap/src/daemon.rs"
+  - path: "apps/cap/src/daemon.rs"
     action: modify
     section: schema
     description: |
@@ -4343,7 +4343,7 @@ changes:
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub async fn run_foreground() -> Result<()> {
           let _singleton = match acquire_singleton_lock()? {
               Some(l) => l,
@@ -4672,7 +4672,7 @@ changes:
       }
       
       /// Is a daemon currently running for this user?
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub fn is_running() -> Result<bool> {
           let pid_path = paths::pid_path()?;
           if !pid_path.exists() {
@@ -4687,7 +4687,7 @@ changes:
           Ok(alive)
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub fn spawn_background() -> Result<i32> {
           use std::process::{Command, Stdio};
           paths::ensure_home()?;
@@ -4706,7 +4706,7 @@ changes:
               .context("spawning cap daemon")?;
           Ok(child.id() as i32)
       }
-  - path: "projects/cap/src/sampler.rs"
+  - path: "apps/cap/src/sampler.rs"
     action: modify
     section: schema
     description: |
@@ -4739,7 +4739,7 @@ changes:
       
       use sysinfo::{MemoryRefreshKind, Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub struct MemorySampler {
           sys: System,
       }
@@ -4748,12 +4748,12 @@ changes:
       /// don't pay the cost of scanning the entire process table each tick.
       /// The throttler only needs RSS at kill time, but Slice 3 refreshes
       /// every tick — N is typically ≤ 8 (one entry per active lease).
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub struct RssSampler {
           sys: System,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl RssSampler {
           pub fn new() -> Self {
               // Start with a bare System; we only ever poke processes.
@@ -4793,7 +4793,7 @@ changes:
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for RssSampler {
           fn default() -> Self {
               Self::new()
@@ -4803,12 +4803,12 @@ changes:
       /// 1-minute load average normalized by core count. > 1.0 means the
       /// machine is oversubscribed; cap's CPU pause floor is a fraction of
       /// that (default 0.80 = "stop submitting once load > 80% of nproc").
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub struct LoadSampler {
           nproc: f64,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl LoadSampler {
           pub fn new() -> Self {
               // available_parallelism rounds physical+SMT cores the same way
@@ -4832,14 +4832,14 @@ changes:
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for LoadSampler {
           fn default() -> Self {
               Self::new()
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl MemorySampler {
           pub fn new() -> Self {
               let sys = System::new_with_specifics(
@@ -4873,7 +4873,7 @@ changes:
           }
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       impl Default for MemorySampler {
           fn default() -> Self {
               Self::new()
@@ -4883,7 +4883,7 @@ changes:
       fn bytes_to_gb(bytes: u64) -> f64 {
           bytes as f64 / 1024.0 / 1024.0 / 1024.0
       }
-  - path: "projects/cap/src/full_main.rs"
+  - path: "apps/cap/src/full_main.rs"
     action: modify
     section: schema
     description: |
@@ -4915,7 +4915,7 @@ changes:
               }
           }
       }
-  - path: "projects/cap/src/cli.rs"
+  - path: "apps/cap/src/cli.rs"
     action: modify
     section: schema
     description: |
@@ -4956,7 +4956,7 @@ changes:
           about = "Live-throttling wrapper for heavy local commands",
           trailing_var_arg = true
       )]
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub struct Cli {
           #[command(subcommand)]
           pub command: Option<Cmd>,
@@ -4967,7 +4967,7 @@ changes:
           pub passthrough: Vec<String>,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Subcommand, Debug)]
       pub enum Cmd {
           /// Run a command under cap (explicit form).
@@ -5024,7 +5024,7 @@ changes:
           },
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Parser, Debug)]
       pub struct RunArgs {
           /// Human-readable label shown in `cap status`.
@@ -5035,7 +5035,7 @@ changes:
           pub command: Vec<String>,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Subcommand, Debug)]
       pub enum DaemonCmd {
           /// Spawn a background daemon if none is running.
@@ -5048,7 +5048,7 @@ changes:
           Status,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Subcommand, Debug)]
       pub enum ConfigCmd {
           /// Print the effective config.
@@ -5057,7 +5057,7 @@ changes:
           Init,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(Subcommand, Debug)]
       pub enum HookCmd {
           /// PreToolUse adapter for Bash (the runtime hook entrypoint that
@@ -5074,7 +5074,7 @@ changes:
           },
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       #[derive(ValueEnum, Clone, Debug)]
       pub enum AgentArg {
           /// Claude Code (~/.claude/settings.json)
@@ -5083,7 +5083,7 @@ changes:
           Codex,
       }
       
-      /// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+      /// @spec apps/cap/tech-design/semantic/cap-src.md#schema
       pub async fn run() -> Result<ExitCode> {
           init_tracing();
           let cli = Cli::parse();
@@ -5376,7 +5376,7 @@ changes:
               _ => ExitCode::FAILURE,
           }
       }
-  - path: "projects/cap/src/cli.rs"
+  - path: "apps/cap/src/cli.rs"
     action: modify
     section: unit-test
     description: |

@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/logic/external-contracts.md#cap-hook-payload-rewrite-adapters
+// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-hook-payload-rewrite-adapters
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-hook-payload-rewrite-adapters

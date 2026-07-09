@@ -1,6 +1,6 @@
 ---
 id: cap-source-session-queue
-summary: Source coverage for projects/cap/src/session_queue.rs opt-in per-session command barriers.
+summary: Source coverage for apps/cap/src/session_queue.rs opt-in per-session command barriers.
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -17,7 +17,7 @@ capability_refs:
     rationale: "Queued job metadata and failure files provide durable local evidence for observe-barrier diagnostics."
 ---
 
-# Source TD: projects/cap/src/session_queue.rs
+# Source TD: apps/cap/src/session_queue.rs
 
 ## Source
 <!-- type: source lang: rust -->
@@ -34,7 +34,7 @@ capability_refs:
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "projects/cap/src/session_queue.rs"
+  - path: "apps/cap/src/session_queue.rs"
     action: modify
     section: source
     description: |

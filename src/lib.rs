@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#exports
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#exports
 // CODEGEN-BEGIN
 //! cap — local resource-protection daemon + CLI wrapper.
 //!

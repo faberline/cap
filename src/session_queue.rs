@@ -13,7 +13,7 @@ const SESSION_ENV: &str = "CAP_SESSION_ID";
 const QUEUE_DIR_ENV: &str = "CAP_SESSION_QUEUE_DIR";
 const DEFAULT_WAIT_MS: u64 = 30_000;
 
-/// @spec projects/cap/tech-design/logic/add-per-session-queue-with-observe-command-barriers.md#logic
+/// @spec apps/cap/tech-design/logic/add-per-session-queue-with-observe-command-barriers.md#logic
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QueueDecision {
     ContinueSynchronously,
@@ -21,7 +21,7 @@ pub enum QueueDecision {
     PriorFailure { job_id: String, exit_code: i32 },
 }
 
-/// @spec projects/cap/tech-design/logic/add-per-session-queue-with-observe-command-barriers.md#logic
+/// @spec apps/cap/tech-design/logic/add-per-session-queue-with-observe-command-barriers.md#logic
 impl QueueDecision {
     pub fn exit_code(&self) -> Option<ExitCode> {
         match self {
@@ -48,7 +48,7 @@ struct JobRecord {
     stderr_path: PathBuf,
 }
 
-/// @spec projects/cap/tech-design/logic/add-per-session-queue-with-observe-command-barriers.md#logic
+/// @spec apps/cap/tech-design/logic/add-per-session-queue-with-observe-command-barriers.md#logic
 pub fn handle_command_string(command: &str) -> Result<QueueDecision> {
     let mut stdout = io::stdout().lock();
     let mut stderr = io::stderr().lock();

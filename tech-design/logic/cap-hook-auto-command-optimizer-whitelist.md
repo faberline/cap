@@ -76,7 +76,7 @@ flowchart TD
 
 ```yaml
 changes:
-  - path: projects/cap/src/hook.rs
+  - path: apps/cap/src/hook.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -87,7 +87,7 @@ changes:
       prevention, absolute cap path selection, and safe single-quote escaping.
       It must not decide which commands are replacements.
 
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: add
     section: logic
     impl_mode: hand-written
@@ -111,7 +111,7 @@ changes:
       candidates until their resource benchmark reaches the dual-win gate or a
       material RSS-fallback gate.
 
-  - path: projects/cap/src/cli.rs
+  - path: apps/cap/src/cli.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -120,7 +120,7 @@ changes:
       execution. Add cap explain -- <cmd> to show the original command,
       implementation choice, run command, reason, and fallback.
 
-  - path: projects/cap/src/hook.rs
+  - path: apps/cap/src/hook.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -129,7 +129,7 @@ changes:
       simple commands, scout-only commands, and shell-sensitive commands, with
       no hook-level optimizer behavior.
 
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: add
     section: unit-test
     impl_mode: hand-written
@@ -138,7 +138,7 @@ changes:
       fallback, inactive tiny-command fallback, and unsupported command
       fallback.
 
-  - path: projects/cap/src/command_planner.rs
+  - path: apps/cap/src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -146,7 +146,7 @@ changes:
       Keep inactive native candidate code out of the active dispatch path so
       only resource-gated replacements are claimed.
 
-  - path: projects/cap/src/cap_frontend.c
+  - path: apps/cap/src/cap_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -156,7 +156,7 @@ changes:
       useful stderr diagnostics instead of silently failing. Provide a direct
       run-string cat path so hook-emitted cap run cat keeps the dual-win gate.
 
-  - path: projects/cap/src/cap_fast_frontend.c
+  - path: apps/cap/src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -168,7 +168,7 @@ changes:
       replacement commands and dispatch them to the same fast implementation
       family as cap <cmd>.
 
-  - path: projects/cap/Cargo.toml
+  - path: apps/cap/Cargo.toml
     action: modify
     section: e2e-test
     impl_mode: hand-written
@@ -176,7 +176,7 @@ changes:
       Register a custom command_resources benchmark target for same-name
       command CPU-time and peak-RSS comparisons.
 
-  - path: projects/cap/benches/command_resources.rs
+  - path: apps/cap/benches/command_resources.rs
     action: add
     section: e2e-test
     impl_mode: hand-written
@@ -189,7 +189,7 @@ changes:
       candidate rows for incomplete command shapes, including mkdir, touch,
       awk, xargs, and representative shell pipes.
 
-  - path: projects/cap/tests/behavior_cap_command_replacement_parity.rs
+  - path: apps/cap/tests/behavior_cap_command_replacement_parity.rs
     action: add
     section: e2e-test
     impl_mode: hand-written
@@ -199,7 +199,7 @@ changes:
       cap run command-string replacements with system commands for stdout, exit
       codes, quiet nonzero cases, and missing-path stderr behavior.
 
-  - path: projects/cap/BENCHMARKS.md
+  - path: apps/cap/BENCHMARKS.md
     action: add
     section: e2e-test
     impl_mode: hand-written
@@ -208,7 +208,7 @@ changes:
       commands currently win or lose against the bare original-command
       comparison contract.
 
-  - path: projects/cap/README.md
+  - path: apps/cap/README.md
     action: modify
     section: overview
     impl_mode: hand-written

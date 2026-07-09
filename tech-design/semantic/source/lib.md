@@ -1,6 +1,6 @@
 ---
 id: cap-source-lib
-summary: Source replay payload for projects/cap/src/lib.rs
+summary: Source replay payload for apps/cap/src/lib.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: projects/cap/src/lib.rs
+# Source TD: apps/cap/src/lib.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,16 +68,16 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `cli` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `command_planner` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `config` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `daemon` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `eventlog` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `hook` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `hook_install` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `reap` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `sampler` | public Rust symbol in `projects/cap/src/lib.rs` |
-| `throttle` | public Rust symbol in `projects/cap/src/lib.rs` |
+| `cli` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `command_planner` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `config` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `daemon` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `eventlog` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `hook` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `hook_install` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `reap` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `sampler` | public Rust symbol in `apps/cap/src/lib.rs` |
+| `throttle` | public Rust symbol in `apps/cap/src/lib.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -139,12 +139,12 @@ pub mod throttle;
 ```yaml
 coverage_kind: source
 changes:
-  - path: "projects/cap/src/lib.rs"
+  - path: "apps/cap/src/lib.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to projects/cap/tech-design/semantic/cap-src.md#exports.
+      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#exports.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-lib-rs-source-replay-superseded>"

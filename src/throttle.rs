@@ -1,4 +1,4 @@
-// SPEC-MANAGED: projects/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Live throttler: pauses / resumes / kills cap-managed children
 //! based on the OS's "available memory" reading and (Slice 5) load
@@ -38,10 +38,10 @@ use crate::protocol::{
 /// PID is unknown / dead. Slice 2 callers pass `|_| None`; Slice 3
 /// passes a `sysinfo`-backed lookup. `Send + Sync` is required so
 /// `tick()` can be awaited from the tokio sampler task.
-/// @spec projects/cap/tech-design/semantic/source/throttle.md#source
+/// @spec apps/cap/tech-design/semantic/source/throttle.md#source
 pub type RssLookup<'a> = &'a (dyn Fn(i32) -> Option<u64> + Send + Sync);
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug)]
 pub struct Lease {
     pub id: LeaseId,
@@ -100,7 +100,7 @@ struct State {
     was_under_pressure: bool,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub struct Throttle {
     cfg: Config,
     /// Memory free-GB floor that triggers pause (back-pressure +
@@ -125,14 +125,14 @@ pub struct Throttle {
 
 /// Result of releasing a lease: the kill diagnostic (if cap killed it)
 /// plus the run-log record (if the command ever actually started).
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug)]
 pub struct ReleaseOutcome {
     pub kill_envelope: Option<KillEnvelope>,
     pub record: Option<RunRecord>,
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone)]
 pub enum TickAction {
     Idle,
@@ -172,7 +172,7 @@ pub enum TickAction {
     KilledAllPaused(Vec<LeaseId>),
 }
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 impl Throttle {
     /// Build a throttler with both protection floors already resolved
     /// (daemon does the derivation from percentages + absolute floor).

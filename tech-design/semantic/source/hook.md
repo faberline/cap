@@ -1,6 +1,6 @@
 ---
 id: cap-source-hook
-summary: Source replay payload for projects/cap/src/hook.rs
+summary: Source replay payload for apps/cap/src/hook.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: projects/cap/src/hook.rs
+# Source TD: apps/cap/src/hook.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,9 +68,9 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `HookAgent` | public Rust symbol in `projects/cap/src/hook.rs` |
-| `effective_program` | public Rust symbol in `projects/cap/src/hook.rs` |
-| `run_bash_hook` | public Rust symbol in `projects/cap/src/hook.rs` |
+| `HookAgent` | public Rust symbol in `apps/cap/src/hook.rs` |
+| `effective_program` | public Rust symbol in `apps/cap/src/hook.rs` |
+| `run_bash_hook` | public Rust symbol in `apps/cap/src/hook.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -113,7 +113,7 @@ use serde::{Deserialize, Serialize};
 /// Wrappers stripped while looking for the "real" first program.
 const PASSTHROUGH_WRAPPERS: &[&str] = &["env", "time", "nice", "nohup", "exec"];
 
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HookAgent {
     Auto,
@@ -164,7 +164,7 @@ struct ModifiedInput {
 
 /// Read JSON from stdin, decide, print JSON to stdout. Always
 /// returns Ok — the binary exits 0 even on malformed input.
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub fn run_bash_hook(agent: HookAgent) -> anyhow::Result<()> {
     let mut buf = String::new();
     std::io::stdin().read_to_string(&mut buf)?;
@@ -325,7 +325,7 @@ const SHELLS: &[&str] = &["bash", "sh", "zsh", "dash", "ksh"];
 /// the first real token of the script. For a shell invocation we look
 /// inside `-c <script>`; otherwise we just take the basename. Returns a
 /// basename like `cargo` / `pytest` / `bash`.
-/// @spec projects/cap/tech-design/semantic/cap-src.md#schema
+/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
 pub fn effective_program(program: &str, args: &[String]) -> String {
     let base = basename(program);
     if SHELLS.contains(&base) {
@@ -486,8 +486,8 @@ mod tests {
             "cap run --label='ls -la | wc -l' -- bash -c 'ls -la | wc -l'"
         );
         assert_eq!(
-            rewrite("cd projects/cap && cargo test").unwrap(),
-            "cap run --label='cd projects/cap && cargo test' -- bash -c 'cd projects/cap && cargo test'"
+            rewrite("cd apps/cap && cargo test").unwrap(),
+            "cap run --label='cd apps/cap && cargo test' -- bash -c 'cd apps/cap && cargo test'"
         );
     }
 
@@ -570,7 +570,7 @@ mod tests {
         // Plain command.
         assert_eq!(ep(&["-c", "cargo test -p cap"]), "cargo");
         // Leading `cd <dir> &&` prefix (the common agent pattern).
-        assert_eq!(ep(&["-c", "cd projects/cap && cargo test"]), "cargo");
+        assert_eq!(ep(&["-c", "cd apps/cap && cargo test"]), "cargo");
         // Chained cd, semicolon separator.
         assert_eq!(ep(&["-c", "cd a; cd b; pytest -k foo"]), "pytest");
         // env wrapper + assignment skipped.
@@ -619,12 +619,12 @@ mod tests {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "projects/cap/src/hook.rs"
+  - path: "apps/cap/src/hook.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to projects/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-hook-rs-source-replay-superseded>"
