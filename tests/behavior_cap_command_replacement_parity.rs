@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#rust-source-unit
+// SPEC-MANAGED: tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#rust-source-unit
 // CODEGEN-BEGIN
 use std::{
     fs,
@@ -7144,7 +7144,7 @@ struct Fixture {
     awk_xargs_wc_file: String,
 }
 
-/// @spec apps/cap/tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#source
+/// @spec tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#source
 impl Fixture {
     fn create(root: &Path) -> Result<Self> {
         let data = root.join("data");

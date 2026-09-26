@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Thin wrapper around `sysinfo` so the rest of the crate doesn't
 //! depend on it directly (makes the throttler easy to test with
@@ -24,7 +24,7 @@ use std::collections::HashMap;
 
 use sysinfo::{MemoryRefreshKind, Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct MemorySampler {
     sys: System,
 }
@@ -33,12 +33,12 @@ pub struct MemorySampler {
 /// don't pay the cost of scanning the entire process table each tick.
 /// The throttler only needs RSS at kill time, but Slice 3 refreshes
 /// every tick — N is typically ≤ 8 (one entry per active lease).
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct RssSampler {
     sys: System,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl RssSampler {
     pub fn new() -> Self {
         // Start with a bare System; we only ever poke processes.
@@ -78,7 +78,7 @@ impl RssSampler {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for RssSampler {
     fn default() -> Self {
         Self::new()
@@ -92,12 +92,12 @@ impl Default for RssSampler {
 /// computes the since-last-refresh delta internally, so no manual
 /// cumulative-time bookkeeping is needed here — unlike RSS, which is
 /// an absolute snapshot, CPU% already comes as a rate.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct CpuSampler {
     sys: System,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl CpuSampler {
     pub fn new() -> Self {
         Self { sys: System::new() }
@@ -134,7 +134,7 @@ impl CpuSampler {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for CpuSampler {
     fn default() -> Self {
         Self::new()
@@ -144,12 +144,12 @@ impl Default for CpuSampler {
 /// 1-minute load average normalized by core count. > 1.0 means the
 /// machine is oversubscribed; cap's CPU pause floor is a fraction of
 /// that (default 0.80 = "stop submitting once load > 80% of nproc").
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct LoadSampler {
     nproc: f64,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl LoadSampler {
     pub fn new() -> Self {
         // available_parallelism rounds physical+SMT cores the same way
@@ -173,14 +173,14 @@ impl LoadSampler {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for LoadSampler {
     fn default() -> Self {
         Self::new()
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl MemorySampler {
     pub fn new() -> Self {
         let sys = System::new_with_specifics(
@@ -214,7 +214,7 @@ impl MemorySampler {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for MemorySampler {
     fn default() -> Self {
         Self::new()

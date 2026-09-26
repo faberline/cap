@@ -218,7 +218,7 @@ flowchart TD
 
 ```yaml
 changes:
-  - path: apps/cap/src/throttle.rs
+  - path: src/throttle.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -236,7 +236,7 @@ changes:
       `KillClassification::IdleTimeout` cases to `classify_kill`'s call
       sites (`build_envelope`, `classification_label`, `action_next_step`).
 
-  - path: apps/cap/src/throttle.rs
+  - path: src/throttle.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -252,7 +252,7 @@ changes:
       deadline deterministically, and a fake `CpuLookup` closure (mirroring
       `NO_RSS`) to script cumulative CPU-time sequences per tick.
 
-  - path: apps/cap/src/sampler.rs
+  - path: src/sampler.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -265,7 +265,7 @@ changes:
       the existing `sample_interval_ms` cadence in the daemon's sampler
       loop.
 
-  - path: apps/cap/src/sampler.rs
+  - path: src/sampler.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -274,7 +274,7 @@ changes:
       by pid for a real running process (e.g. the test process itself) and
       omits dead/unknown pids, matching `RssSampler`'s existing test shape.
 
-  - path: apps/cap/src/protocol.rs
+  - path: src/protocol.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -287,7 +287,7 @@ changes:
       `InspectAndWait`, since a timeout kill is not a resource-competition
       diagnosis and should not suggest `cap wait`.
 
-  - path: apps/cap/src/protocol.rs
+  - path: src/protocol.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -297,7 +297,7 @@ changes:
       `None`, and a test proving `KillClassification::AbsoluteTimeout` /
       `IdleTimeout` serialize to the expected snake_case tags.
 
-  - path: apps/cap/src/cli.rs
+  - path: src/cli.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -308,7 +308,7 @@ changes:
       against `default_timeout_secs`/`default_idle_timeout_secs`) when
       unset.
 
-  - path: apps/cap/src/cli.rs
+  - path: src/cli.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -317,7 +317,7 @@ changes:
       10 -- <cmd>` populates both `RunArgs` fields, and that omitting both
       flags leaves them `None`.
 
-  - path: apps/cap/src/config.rs
+  - path: src/config.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -327,7 +327,7 @@ changes:
       `Protect::default()` and via `#[serde(default)]`, so existing
       `config.toml` files without these keys parse unchanged.
 
-  - path: apps/cap/src/config.rs
+  - path: src/config.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -336,7 +336,7 @@ changes:
       new keys both resolve `default_timeout_secs`/`default_idle_timeout_secs`
       to `0`, matching the existing legacy-key-fallback test pattern.
 
-  - path: apps/cap/src/daemon.rs
+  - path: src/daemon.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -347,7 +347,7 @@ changes:
       into `throttle.register(...)` (or a follow-up setter call) so `tick()`
       has both values available per lease from the moment it starts running.
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: overview
     impl_mode: hand-written

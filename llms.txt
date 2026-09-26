@@ -1,4 +1,4 @@
-<!-- SPEC-MANAGED: apps/cap/tech-design/semantic/cap-projects-cap.md#schema -->
+<!-- SPEC-MANAGED: tech-design/semantic/cap-projects-cap.md#schema -->
 <!-- CODEGEN-BEGIN -->
 # cap Agent Context
 
@@ -7,7 +7,7 @@
 ## Tech Design
 
 - [Tech Design](tech-design): implementation source of truth.
-- Validate: `aw td check apps/cap/tech-design`.
+- Validate: `aw td check tech-design`.
 
 ## Capability Map
 

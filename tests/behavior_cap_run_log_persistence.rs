@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-run-log-persistence
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-run-log-persistence
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-run-log-persistence

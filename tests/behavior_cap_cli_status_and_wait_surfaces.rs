@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-cli-status-and-wait-surfaces
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-cli-status-and-wait-surfaces
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-cli-status-and-wait-surfaces

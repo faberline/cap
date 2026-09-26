@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/source/projects-cap-benches-command_resources-rs.md#rust-source-unit
+// SPEC-MANAGED: tech-design/semantic/source/projects-cap-benches-command_resources-rs.md#rust-source-unit
 // CODEGEN-BEGIN
 //! Resource benchmarks for same-name `cap <command>` replacements.
 //!
@@ -47,7 +47,7 @@ enum Gate {
     Candidate,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
 impl Gate {
     fn label(self) -> &'static str {
         match self {
@@ -702,7 +702,7 @@ struct Fixture {
     root: PathBuf,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
 impl Fixture {
     fn create() -> Result<Self> {
         let dir = tempfile::tempdir().context("creating cap benchmark fixture")?;
@@ -7451,7 +7451,7 @@ fn strings<const N: usize>(values: [&str; N]) -> Vec<String> {
     values.into_iter().map(ToString::to_string).collect()
 }
 // CODEGEN-END
-// SPEC-MANAGED: apps/cap/tech-design/logic/command-resources-dual-win-rss-gate-fails-unconditionally-blocki.md#e2e-test
+// SPEC-MANAGED: tech-design/logic/command-resources-dual-win-rss-gate-fails-unconditionally-blocki.md#e2e-test
 // CODEGEN-BEGIN
 
 // CODEGEN-END

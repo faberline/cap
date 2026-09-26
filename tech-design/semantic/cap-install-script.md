@@ -22,12 +22,12 @@ fill_sections: [text-source-unit, changes]
 # Releases and drops it on your PATH.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/chrischeng-c4/axiom/main/apps/cap/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/faberline/cap/main/install.sh | sh
 #
 # Env overrides:
 #   CAP_VERSION   tag to install (default: latest cap@* release, e.g. cap@1.0)
 #   CAP_INSTALL   install dir (default: $HOME/.local/bin)
-#   CAP_REPO      gh repo (default: chrischeng-c4/axiom)
+#   CAP_REPO      gh repo (default: faberline/cap)
 #   GH_TOKEN      GitHub token for private-repo fetch (also: GITHUB_TOKEN)
 #                 If unset and `gh` is logged in, `gh auth token` is used.
 #
@@ -38,7 +38,7 @@ fill_sections: [text-source-unit, changes]
 #   3  missing curl / tar
 set -eu
 
-REPO="${CAP_REPO:-chrischeng-c4/axiom}"
+REPO="${CAP_REPO:-faberline/cap}"
 INSTALL_DIR="${CAP_INSTALL:-$HOME/.local/bin}"
 VERSION="${CAP_VERSION:-latest}"
 TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
@@ -193,7 +193,7 @@ fi
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "apps/cap/install.sh"
+  - path: "./install.sh"
     action: modify
     section: text-source-unit
     description: "Regenerate the cap installer script from a TD-owned text source unit."

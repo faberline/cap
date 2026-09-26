@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-memory-and-cpu-pressure-sampling
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-memory-and-cpu-pressure-sampling
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-memory-and-cpu-pressure-sampling

@@ -1,6 +1,6 @@
 ---
 id: cap-source-resident-shell
-summary: Source coverage for apps/cap/src/resident_shell.rs resident command-string execution.
+summary: Source coverage for src/resident_shell.rs resident command-string execution.
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -17,7 +17,7 @@ capability_refs:
     rationale: "Agent hooks route original Bash payloads into cap run command strings, which the resident shell optimizes or falls back without changing hook semantics."
 ---
 
-# Source TD: apps/cap/src/resident_shell.rs
+# Source TD: src/resident_shell.rs
 
 ## Source
 <!-- type: source lang: rust -->
@@ -34,7 +34,7 @@ capability_refs:
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "apps/cap/src/resident_shell.rs"
+  - path: "src/resident_shell.rs"
     action: modify
     section: source
     description: |

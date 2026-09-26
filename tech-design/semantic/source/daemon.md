@@ -1,6 +1,6 @@
 ---
 id: cap-source-daemon
-summary: Source replay payload for apps/cap/src/daemon.rs
+summary: Source replay payload for src/daemon.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: apps/cap/src/daemon.rs
+# Source TD: src/daemon.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,9 +68,9 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `is_running` | public Rust symbol in `apps/cap/src/daemon.rs` |
-| `run_foreground` | public Rust symbol in `apps/cap/src/daemon.rs` |
-| `spawn_background` | public Rust symbol in `apps/cap/src/daemon.rs` |
+| `is_running` | public Rust symbol in `src/daemon.rs` |
+| `run_foreground` | public Rust symbol in `src/daemon.rs` |
+| `spawn_background` | public Rust symbol in `src/daemon.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -154,7 +154,7 @@ fn acquire_singleton_lock() -> Result<Option<SingletonLock>> {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub async fn run_foreground() -> Result<()> {
     let _singleton = match acquire_singleton_lock()? {
         Some(l) => l,
@@ -483,7 +483,7 @@ async fn write_resp<W: AsyncWriteExt + Unpin>(w: &mut W, r: &Response) -> Result
 }
 
 /// Is a daemon currently running for this user?
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn is_running() -> Result<bool> {
     let pid_path = paths::pid_path()?;
     if !pid_path.exists() {
@@ -498,7 +498,7 @@ pub fn is_running() -> Result<bool> {
     Ok(alive)
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn spawn_background() -> Result<i32> {
     use std::process::{Command, Stdio};
     paths::ensure_home()?;
@@ -525,12 +525,12 @@ pub fn spawn_background() -> Result<i32> {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "apps/cap/src/daemon.rs"
+  - path: "src/daemon.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-daemon-rs-source-replay-superseded>"

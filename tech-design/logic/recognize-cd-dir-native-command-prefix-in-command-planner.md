@@ -272,7 +272,7 @@ flowchart TD
 
 ```yaml
 changes:
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -303,7 +303,7 @@ changes:
       construction (pure additive insertion, no existing branch reordered or
       removed).
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -326,7 +326,7 @@ changes:
       (a fixed `"cap-native cd-prefix"` label; the resolved absolute
       directory is already surfaced via `NativePlan.reason`, not this label).
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -346,7 +346,7 @@ changes:
       falling back to bash unchanged (R4/AC3); and a full existing-suite run
       proving no `command_planner.rs` test regresses (R5/AC4).
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: overview
     impl_mode: hand-written

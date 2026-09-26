@@ -24,14 +24,14 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
-// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 #define CAP_LS_MIN_ENTRIES 1024
 #define CAP_FIND_MIN_ENTRIES 512
 #define CAP_SED_MIN_BYTES (1024 * 1024)
 #define CAP_SED_MIN_SPAN_LINES 1024
 #define CAP_GREP_MIN_FILES 64
 #define CAP_GREP_MIN_BYTES (1024 * 1024)
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #define CAP_WC_MIN_FILES 64
 #define CAP_WC_MIN_BYTES (1024 * 1024)
 #define CAP_AWK_DELIMITED_MIN_BYTES (1024 * 1024)
@@ -285,7 +285,7 @@ static void write_u64(unsigned long long value) {
   while (len > 0) write_bytes(&buf[--len], 1);
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 static void write_padded_u64(unsigned long long value) {
   unsigned long long tmp = value;
   int digits = 1;
@@ -996,7 +996,7 @@ static int stdout_is_dev_null(void) {
          out_st.st_dev == null_st.st_dev && out_st.st_ino == null_st.st_ino;
 }
 
-// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 static int dir_entries_at_least(const char *path, size_t min, int include_hidden) {
   DIR *dir = opendir(path);
   if (!dir) return 0;
@@ -1014,7 +1014,7 @@ static int dir_entries_at_least(const char *path, size_t min, int include_hidden
   return 0;
 }
 
-// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 static int tree_entries_walk(char *path, size_t cap, size_t *count, size_t min) {
   struct stat st;
   if (lstat(path, &st) != 0) return 0;
@@ -1049,7 +1049,7 @@ static int tree_entries_at_least(const char *root, size_t min) {
   return tree_entries_walk(path, sizeof(path), &count, min);
 }
 
-// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 static int grep_workload_walk(char *path, size_t cap, size_t *files, unsigned long long *bytes) {
   struct stat st;
   if (lstat(path, &st) != 0) return 0;
@@ -4121,7 +4121,7 @@ static void write_wc_all_counts(struct wc_all_counts counts, const char *label) 
   write_bytes("\n", 1);
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 static int cap_wc(int argc, char **argv) {
   int file_start = 2;
   int all_counts = 1;

@@ -1,6 +1,6 @@
 ---
 id: semantic-cap-benches
-summary: Semantic coverage for "apps/cap/benches"
+summary: Semantic coverage for "benches"
 fill_sections: [schema, unit-test, changes]
 capability_refs:
   - id: agent-hook-installation
@@ -25,11 +25,11 @@ capability_refs:
 ```yaml
 semantic_domain:
   key: "cap/benches"
-  source_group: "apps/cap/benches"
+  source_group: "benches"
   coverage_kind: semantic
   evidence:
     source_units:
-      - path: "apps/cap/benches/command_resources.rs"
+      - path: "benches/command_resources.rs"
         language: "rust"
         ownership_state: "codegen"
         generator_primitives: ["config_surface", "data_model", "service_method"]
@@ -126,7 +126,7 @@ semantic_domain:
           ecosystem: "rust"
           role: "source"
           section_type: "schema"
-          domain: "apps/cap/benches"
+          domain: "benches"
 ```
 
 ## Unit Test
@@ -153,7 +153,7 @@ element UT_SOURCE_TESTS {
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "apps/cap/benches/command_resources.rs"
+  - path: "benches/command_resources.rs"
     action: modify
     section: schema
     description: |
@@ -161,7 +161,7 @@ changes:
       The benchmark schema carries a resource gate for each scenario:
       dual-win, RSS fallback, or candidate.
     impl_mode: hand-written
-  - path: "apps/cap/benches/command_resources.rs"
+  - path: "benches/command_resources.rs"
     action: modify
     section: unit-test
     description: |

@@ -246,7 +246,7 @@ requirementDiagram
 
 ```yaml
 changes:
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -258,7 +258,7 @@ changes:
       Missing or unsupported shapes remain External Original so behavior stays
       delegated to the system command.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -268,7 +268,7 @@ changes:
       system `wc -l` success shape, including per-file rows and the multi-file
       total row.
 
-  - path: apps/cap/src/cap_fast_frontend.c
+  - path: src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -279,7 +279,7 @@ changes:
       so the public `cap` launcher continues through `cap-full` and
       original-command fallback.
 
-  - path: apps/cap/src/cap_fast_frontend.c
+  - path: src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -288,7 +288,7 @@ changes:
       prove regular-file safety. Do not add arbitrary `wc` option support in
       this slice.
 
-  - path: apps/cap/tests/behavior_cap_command_replacement_parity.rs
+  - path: tests/behavior_cap_command_replacement_parity.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -297,7 +297,7 @@ changes:
       `cap run "wc -l ..."` success, and fallback/error cases for missing
       paths or unsupported operands.
 
-  - path: apps/cap/benches/command_resources.rs
+  - path: benches/command_resources.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -306,7 +306,7 @@ changes:
       comparing the production C frontend against `/usr/bin/wc` using median
       child CPU time and peak RSS.
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: logic
     impl_mode: hand-written
@@ -315,7 +315,7 @@ changes:
       fused pipe shapes that reuse line-count, token batching, and early-stop
       primitives while unsupported pipelines keep shell fallback.
 
-  - path: apps/cap/BENCHMARKS.md
+  - path: BENCHMARKS.md
     action: modify
     section: unit-test
     impl_mode: hand-written

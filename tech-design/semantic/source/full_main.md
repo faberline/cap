@@ -1,6 +1,6 @@
 ---
 id: cap-source-full-main
-summary: Source replay payload for apps/cap/src/full_main.rs
+summary: Source replay payload for src/full_main.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: apps/cap/src/full_main.rs
+# Source TD: src/full_main.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -105,12 +105,12 @@ fn main() -> ExitCode {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "apps/cap/src/full_main.rs"
+  - path: "src/full_main.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-main-rs-source-replay-superseded>"

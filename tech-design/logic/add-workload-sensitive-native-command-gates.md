@@ -219,7 +219,7 @@ requirementDiagram
 
 ```yaml
 changes:
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -228,7 +228,7 @@ changes:
       commands at any size. Unsupported flags, stdin-dependent forms, and shell
       control syntax must return an External Original plan.
 
-  - path: apps/cap/src/cap_fast_frontend.c
+  - path: src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -237,7 +237,7 @@ changes:
       frontend so same-name native fast paths claim both small and large safe
       workloads while unsupported shapes fall through to cap-full.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -246,7 +246,7 @@ changes:
       replacement path, unsupported options keep the original path, and
       shell-free cap run strings make the same shape-sensitive decision as argv.
 
-  - path: apps/cap/benches/command_resources.rs
+  - path: benches/command_resources.rs
     action: modify
     section: e2e-test
     impl_mode: hand-written
@@ -255,7 +255,7 @@ changes:
       representative large rows for resource-gated workloads. Takeover rows are
       measured without CPU/RSS admission failure.
 
-  - path: apps/cap/tests/behavior_cap_command_replacement_parity.rs
+  - path: tests/behavior_cap_command_replacement_parity.rs
     action: modify
     section: e2e-test
     impl_mode: hand-written
@@ -263,7 +263,7 @@ changes:
       Keep active replacement parity coverage for promoted same-name shapes and
       add regression coverage for tiny primitive takeover paths.
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: overview
     impl_mode: hand-written
@@ -272,7 +272,7 @@ changes:
       takeover. Document that unknown or shell-sensitive workloads keep
       original-command behavior.
 
-  - path: apps/cap/BENCHMARKS.md
+  - path: BENCHMARKS.md
     action: modify
     section: overview
     impl_mode: hand-written

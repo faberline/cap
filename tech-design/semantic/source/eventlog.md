@@ -1,6 +1,6 @@
 ---
 id: cap-source-eventlog
-summary: Source replay payload for apps/cap/src/eventlog.rs
+summary: Source replay payload for src/eventlog.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: apps/cap/src/eventlog.rs
+# Source TD: src/eventlog.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,10 +68,10 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `EventLog` | public Rust symbol in `apps/cap/src/eventlog.rs` |
-| `RunRecord` | public Rust symbol in `apps/cap/src/eventlog.rs` |
-| `append` | public Rust symbol in `apps/cap/src/eventlog.rs` |
-| `new` | public Rust symbol in `apps/cap/src/eventlog.rs` |
+| `EventLog` | public Rust symbol in `src/eventlog.rs` |
+| `RunRecord` | public Rust symbol in `src/eventlog.rs` |
+| `append` | public Rust symbol in `src/eventlog.rs` |
+| `new` | public Rust symbol in `src/eventlog.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -101,7 +101,7 @@ use crate::protocol::KillClassification;
 
 /// One completed command. Field names are the JSONL schema — keep them
 /// stable; downstream tooling/agents parse this.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize)]
 pub struct RunRecord {
     /// RFC 3339 timestamp when the command finished (record write time).
@@ -143,14 +143,14 @@ pub struct RunRecord {
 
 /// Appends [`RunRecord`]s to the daily JSONL file. Cheap to clone-share
 /// across daemon connection tasks (just an enable flag + dir path).
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone)]
 pub struct EventLog {
     enabled: bool,
     dir: Option<PathBuf>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl EventLog {
     pub fn new(enabled: bool) -> Self {
         // Resolve the dir once; if it can't be resolved we just disable
@@ -278,12 +278,12 @@ mod tests {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "apps/cap/src/eventlog.rs"
+  - path: "src/eventlog.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-eventlog-rs-source-replay-superseded>"

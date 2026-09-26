@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 // Minimal public cap dispatcher.
 //

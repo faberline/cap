@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Per-command run log.
 //!
@@ -24,7 +24,7 @@ use crate::protocol::KillClassification;
 
 /// One completed command. Field names are the JSONL schema — keep them
 /// stable; downstream tooling/agents parse this.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize)]
 pub struct RunRecord {
     /// RFC 3339 timestamp when the command finished (record write time).
@@ -66,14 +66,14 @@ pub struct RunRecord {
 
 /// Appends [`RunRecord`]s to the daily JSONL file. Cheap to clone-share
 /// across daemon connection tasks (just an enable flag + dir path).
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone)]
 pub struct EventLog {
     enabled: bool,
     dir: Option<PathBuf>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl EventLog {
     pub fn new(enabled: bool) -> Self {
         // Resolve the dir once; if it can't be resolved we just disable

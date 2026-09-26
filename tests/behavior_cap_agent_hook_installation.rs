@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-agent-hook-installation
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-agent-hook-installation
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-agent-hook-installation

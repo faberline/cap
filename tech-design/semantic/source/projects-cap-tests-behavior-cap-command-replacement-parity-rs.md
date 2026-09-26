@@ -1,6 +1,6 @@
 ---
 id: projects-cap-tests-behavior-cap-command-replacement-parity-rs
-summary: Lossless rust-source-unit coverage for `apps/cap/tests/behavior_cap_command_replacement_parity.rs`.
+summary: Lossless rust-source-unit coverage for `tests/behavior_cap_command_replacement_parity.rs`.
 capability_refs:
   - id: agent-hook-installation
     role: primary
@@ -10,12 +10,12 @@ capability_refs:
 fill_sections: [overview, source, changes]
 ---
 
-# Standardized apps/cap/tests/behavior_cap_command_replacement_parity.rs
+# Standardized tests/behavior_cap_command_replacement_parity.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
 
-Public API manifest for `apps/cap/tests/behavior_cap_command_replacement_parity.rs` generated from AST during Score force-regeneration standardization.
+Public API manifest for `tests/behavior_cap_command_replacement_parity.rs` generated from AST during Score force-regeneration standardization.
 
 ### Symbols
 
@@ -24,7 +24,7 @@ No public AST symbols.
 <!-- type: rust-source-unit lang: rust -->
 
 ````rust
-// SPEC-MANAGED: apps/cap/tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#rust-source-unit
+// SPEC-MANAGED: tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#rust-source-unit
 // CODEGEN-BEGIN
 use std::{
     fs,
@@ -634,7 +634,7 @@ struct Fixture {
     wc_files: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#source
+/// @spec tech-design/semantic/source/projects-cap-tests-behavior-cap-command-replacement-parity-rs.md#source
 impl Fixture {
     fn create(root: &Path) -> Result<Self> {
         let data = root.join("data");
@@ -746,7 +746,7 @@ fn path_string(path: &Path) -> String {
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "apps/cap/tests/behavior_cap_command_replacement_parity.rs"
+  - path: "tests/behavior_cap_command_replacement_parity.rs"
     action: modify
     section: rust-source-unit
     impl_mode: codegen

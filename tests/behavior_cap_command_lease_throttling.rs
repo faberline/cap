@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-command-lease-throttling
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-command-lease-throttling
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-command-lease-throttling

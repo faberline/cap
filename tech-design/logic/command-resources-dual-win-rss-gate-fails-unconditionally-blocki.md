@@ -85,27 +85,27 @@ flowchart TD
 
 ```yaml
 changes:
-  - path: apps/cap/tech-design/semantic/source/projects-cap-benches-command_resources-rs.md
+  - path: tech-design/semantic/source/projects-cap-benches-command_resources-rs.md
     action: modify
     section: rust-source-unit
     impl_mode: codegen
     description: Define an explicit CPU-win-with-RSS-budget gate with a 1.25 ceiling, preserve raw ratio reporting, and create an independent bounded stdin fixture for xargs -n 1.
-  - path: apps/cap/benches/command_resources.rs
+  - path: benches/command_resources.rs
     action: modify
     section: e2e-test
     impl_mode: codegen
     description: Regenerate the runtime benchmark from its semantic source so policy behavior and fixture sizing stay synchronized.
-  - path: apps/cap/tests/command_resources_gate.rs
+  - path: tests/command_resources_gate.rs
     action: add
     section: unit-test
     impl_mode: hand-written
     description: Cover the CPU and RSS policy boundaries plus the bounded xargs-n1 fixture without running the benchmark workload.
-  - path: apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md
+  - path: tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md
     action: modify
     section: e2e-test
     impl_mode: hand-written
     description: Replace obsolete strict dual-win wording with the calibrated CPU-plus-RSS-budget verification contract.
-  - path: apps/cap/BENCHMARKS.md
+  - path: BENCHMARKS.md
     action: modify
     section: documentation
     impl_mode: hand-written

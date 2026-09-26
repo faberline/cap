@@ -1,6 +1,6 @@
 ---
 id: semantic-cap-projects-cap
-summary: Semantic coverage for "apps/cap"
+summary: Semantic coverage for "."
 fill_sections: [schema, changes]
 capability_refs:
   - id: daemon-lifecycle-and-status
@@ -19,11 +19,11 @@ capability_refs:
 ```yaml
 semantic_domain:
   key: "cap/apps/cap"
-  source_group: "apps/cap"
+  source_group: "."
   coverage_kind: semantic
   evidence:
     source_units:
-      - path: "apps/cap/llms.txt"
+      - path: "llms.txt"
         language: "llms"
         ownership_state: "codegen"
         generator_primitives: ["project_root_llms"]
@@ -32,7 +32,7 @@ semantic_domain:
           ecosystem: "llms"
           role: "source"
           section_type: "schema"
-          domain: "apps/cap"
+          domain: "."
 ```
 
 ## Changes
@@ -41,7 +41,7 @@ semantic_domain:
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "apps/cap/llms.txt"
+  - path: "llms.txt"
     action: modify
     section: schema
     description: |

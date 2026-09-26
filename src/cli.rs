@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! CLI surface — clap-derive command tree.
 //!
@@ -35,7 +35,7 @@ use crate::supervisor::SpawnSpec;
 
 const TOOL: cli_std::ToolInfo = cli_std::ToolInfo {
     project: "cap",
-    repo: "chrischeng-c4/axiom",
+    repo: "faberline/cap",
     target: env!("CAP_TARGET"),
     version: env!("CARGO_PKG_VERSION"),
     git_sha: env!("CAP_GIT_SHA"),
@@ -100,7 +100,7 @@ optimization.",
     about = "Live-throttling wrapper for heavy local commands",
     trailing_var_arg = true
 )]
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Cmd>,
@@ -111,7 +111,7 @@ pub struct Cli {
     pub passthrough: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum Cmd {
     /// Print offline agent-facing docs for driving cap.
@@ -193,7 +193,7 @@ pub enum Cmd {
     },
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Parser, Debug)]
 pub struct LlmArgs {
     /// Topic to print: outline (default), workflow, commands, boundaries.
@@ -204,7 +204,7 @@ pub struct LlmArgs {
     pub format: String,
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Parser, Debug)]
 pub struct UpgradeArgs {
     /// Install a specific release tag, e.g. cap@0.3.62 or 0.3.62.
@@ -215,7 +215,7 @@ pub struct UpgradeArgs {
     pub check: bool,
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Subcommand, Debug)]
 pub enum IssueCmd {
     /// Search cap issues; omit the query to list recent open app:cap issues.
@@ -226,7 +226,7 @@ pub enum IssueCmd {
     Create(IssueCreateArgs),
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Args, Debug)]
 pub struct IssueSearchArgs {
     /// Search text.
@@ -240,14 +240,14 @@ pub struct IssueSearchArgs {
     pub limit: u32,
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Args, Debug)]
 pub struct IssueViewArgs {
     /// Issue number.
     pub number: u64,
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Args, Debug)]
 pub struct IssueCreateArgs {
     /// Issue title. Defaults to a title derived from the message.
@@ -261,7 +261,7 @@ pub struct IssueCreateArgs {
     pub message: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
+/// @spec tech-design/interfaces/cli/adopt-cli-convention-llm-upgrade-report-issue-via-cclab-cli-std.md
 #[derive(Parser, Debug)]
 pub struct ReportIssueArgs {
     /// Issue title.
@@ -275,7 +275,7 @@ pub struct ReportIssueArgs {
     pub message: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Parser, Debug)]
 pub struct RunArgs {
     /// Human-readable label shown in `cap status`.
@@ -297,7 +297,7 @@ pub struct RunArgs {
     pub command: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Parser, Debug)]
 pub struct ExplainArgs {
     /// The command to explain, after `--`.
@@ -305,7 +305,7 @@ pub struct ExplainArgs {
     pub command: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum DaemonCmd {
     /// Spawn a background daemon if none is running.
@@ -318,7 +318,7 @@ pub enum DaemonCmd {
     Status,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum ConfigCmd {
     /// Print the effective config.
@@ -327,7 +327,7 @@ pub enum ConfigCmd {
     Init,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum HookCmd {
     /// PreToolUse adapter for Bash (the runtime hook entrypoint that
@@ -347,7 +347,7 @@ pub enum HookCmd {
     Agy,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(ValueEnum, Clone, Debug)]
 pub enum AgentArg {
     /// Claude Code (~/.claude/settings.json)
@@ -358,7 +358,7 @@ pub enum AgentArg {
     Agy,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub async fn run() -> Result<ExitCode> {
     init_tracing();
     let cli = Cli::parse();

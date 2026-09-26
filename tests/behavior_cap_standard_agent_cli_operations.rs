@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-standard-agent-cli-operations
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-standard-agent-cli-operations
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-standard-agent-cli-operations

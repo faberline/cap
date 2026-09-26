@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-reap-allowlist-policy
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-reap-allowlist-policy
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-reap-allowlist-policy

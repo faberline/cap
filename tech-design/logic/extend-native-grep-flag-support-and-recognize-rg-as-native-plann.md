@@ -406,7 +406,7 @@ flowchart TD
 
 ```yaml
 changes:
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -441,7 +441,7 @@ changes:
       `--glob`/`-g`, `--type`, `--include`, `-u`, `-p`, `--json`, `-U`, more
       than one file, or a rejected combined-context form) returns `None`.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -476,7 +476,7 @@ changes:
       pipe-fusion/bash-fallback logic already does). `plan_grep_replacement`
       (~line 9483) is not touched by either change.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -508,7 +508,7 @@ changes:
       `cargo test -p cap command_planner` run proving the #1378 cd-prefix
       suite and the rest of the existing suite are unaffected.
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: overview
     impl_mode: hand-written

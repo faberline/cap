@@ -1,6 +1,6 @@
 ---
 id: cap-source-config
-summary: Source replay payload for apps/cap/src/config.rs
+summary: Source replay payload for src/config.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: apps/cap/src/config.rs
+# Source TD: src/config.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,12 +68,12 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `Config` | public Rust symbol in `apps/cap/src/config.rs` |
-| `Defaults` | public Rust symbol in `apps/cap/src/config.rs` |
-| `Log` | public Rust symbol in `apps/cap/src/config.rs` |
-| `Protect` | public Rust symbol in `apps/cap/src/config.rs` |
-| `load` | public Rust symbol in `apps/cap/src/config.rs` |
-| `save` | public Rust symbol in `apps/cap/src/config.rs` |
+| `Config` | public Rust symbol in `src/config.rs` |
+| `Defaults` | public Rust symbol in `src/config.rs` |
+| `Log` | public Rust symbol in `src/config.rs` |
+| `Protect` | public Rust symbol in `src/config.rs` |
+| `load` | public Rust symbol in `src/config.rs` |
+| `save` | public Rust symbol in `src/config.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -84,7 +84,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::paths;
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
@@ -95,7 +95,7 @@ pub struct Config {
     pub log: Log,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Protect {
@@ -158,14 +158,14 @@ pub struct Protect {
     pub reap_cooldown_secs: u64,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Defaults {
     /// Priority bump applied to children (higher = lower priority).
     pub nice: i32,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Log {
@@ -175,7 +175,7 @@ pub struct Log {
     pub enabled: bool,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for Protect {
     fn default() -> Self {
         // 80% used = pause (back-pressure new submissions, SIGSTOP-newest).
@@ -201,21 +201,21 @@ impl Default for Protect {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for Defaults {
     fn default() -> Self {
         Self { nice: 5 }
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for Log {
     fn default() -> Self {
         Self { enabled: true }
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Config {
     pub fn load() -> Result<Self> {
         let path = paths::config_path()?;
@@ -350,12 +350,12 @@ mod tests {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "apps/cap/src/config.rs"
+  - path: "src/config.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-config-rs-source-replay-superseded>"

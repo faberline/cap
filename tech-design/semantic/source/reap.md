@@ -1,6 +1,6 @@
 ---
 id: cap-source-reap
-summary: Source replay payload for apps/cap/src/reap.rs
+summary: Source replay payload for src/reap.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: apps/cap/src/reap.rs
+# Source TD: src/reap.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,13 +68,13 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `REAP_ALLOWLIST` | public Rust symbol in `apps/cap/src/reap.rs` |
-| `ReapedProcess` | public Rust symbol in `apps/cap/src/reap.rs` |
-| `Reaper` | public Rust symbol in `apps/cap/src/reap.rs` |
-| `cooldown_elapsed` | public Rust symbol in `apps/cap/src/reap.rs` |
-| `dry_scan` | public Rust symbol in `apps/cap/src/reap.rs` |
-| `new` | public Rust symbol in `apps/cap/src/reap.rs` |
-| `scan_and_reap` | public Rust symbol in `apps/cap/src/reap.rs` |
+| `REAP_ALLOWLIST` | public Rust symbol in `src/reap.rs` |
+| `ReapedProcess` | public Rust symbol in `src/reap.rs` |
+| `Reaper` | public Rust symbol in `src/reap.rs` |
+| `cooldown_elapsed` | public Rust symbol in `src/reap.rs` |
+| `dry_scan` | public Rust symbol in `src/reap.rs` |
+| `new` | public Rust symbol in `src/reap.rs` |
+| `scan_and_reap` | public Rust symbol in `src/reap.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -130,7 +130,7 @@ pub const REAP_ALLOWLIST: &[&str] = &[
 /// One process the reap pass picked up. Surfaced in daemon logs and
 /// can be embedded in a follow-up KillEnvelope's note so the agent
 /// sees what cap did on its behalf.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone)]
 pub struct ReapedProcess {
     pub pid: i32,
@@ -143,13 +143,13 @@ pub struct ReapedProcess {
 /// reuse the internal process map (avoids re-allocating on every call)
 /// and remembers the last scan time so the daemon can debounce
 /// without a free-standing Instant.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct Reaper {
     sys: System,
     last_scan: Option<std::time::Instant>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Reaper {
     pub fn new() -> Self {
         Self {
@@ -268,7 +268,7 @@ impl Reaper {
     fn _silence_pid_import(_: Pid) {}
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for Reaper {
     fn default() -> Self {
         Self::new()
@@ -329,12 +329,12 @@ mod tests {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "apps/cap/src/reap.rs"
+  - path: "src/reap.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-reap-rs-source-replay-superseded>"

@@ -22,7 +22,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: apps/cap/build.sh <debug|release>
+Usage: ./build.sh <debug|release>
 
 debug    Build cap and install target/debug/{cap,cap-fast,cap-full}.
 release  Build/install cap, create a release commit, and print the tag to push after git:land.
@@ -36,7 +36,7 @@ fail_hint() {
   local install_dir="${CAP_INSTALL:-$HOME/.cargo/bin}"
   echo ""
   echo "Build failed."
-  echo "Retry with: apps/cap/build.sh ${mode}"
+  echo "Retry with: ./build.sh ${mode}"
   echo "Verify with: ${install_dir}/cap --version"
 }
 
@@ -96,11 +96,11 @@ install_cap() {
   fi
   "${CC:-cc}" \
     "${frontend_flags[@]}" \
-    apps/cap/src/cap_frontend.c \
+    src/cap_frontend.c \
     -o "target/${profile}/cap"
   "${CC:-cc}" \
     "${cflags[@]}" \
-    apps/cap/src/cap_fast_frontend.c \
+    src/cap_fast_frontend.c \
     -o "target/${profile}/cap-fast"
   mkdir -p "$INSTALL_DIR"
   install -m 755 "target/${profile}/cap" "$INSTALL_DIR/cap"
@@ -120,8 +120,8 @@ install_cap() {
 }
 
 if [[ "$MODE" == "debug" ]]; then
-  VERSION_FILES=(apps/cap/Cargo.toml)
-  CURRENT_VERSION="$(project_build_read_version apps/cap/Cargo.toml)"
+  VERSION_FILES=(Cargo.toml)
+  CURRENT_VERSION="$(project_build_read_version Cargo.toml)"
   project_build_prepare_debug_version cap "$CURRENT_VERSION" "${VERSION_FILES[@]}"
   cargo build -p cap
   install_cap debug
@@ -131,8 +131,8 @@ if [[ "$MODE" == "debug" ]]; then
   exit 0
 fi
 
-VERSION_FILES=(apps/cap/Cargo.toml)
-CURRENT_VERSION="$(project_build_read_version apps/cap/Cargo.toml)"
+VERSION_FILES=(Cargo.toml)
+CURRENT_VERSION="$(project_build_read_version Cargo.toml)"
 export PROJECT_BUILD_REQUIRE_REMOTE_TAG_CHECK=1
 project_build_prepare_release_version cap "$CURRENT_VERSION" "${VERSION_FILES[@]}"
 
@@ -141,7 +141,7 @@ cargo build --release -p cap
 install_cap release
 
 TAG="${PROJECT_BUILD_RELEASE_TAG}"
-git add Cargo.lock apps/cap
+git add Cargo.lock .
 git commit --allow-empty -m "release(cap): ${TAG}"
 
 project_build_print_release_next_steps cap "$TAG"
@@ -153,7 +153,7 @@ project_build_print_release_next_steps cap "$TAG"
 ```yaml
 coverage_kind: semantic
 changes:
-  - path: "apps/cap/build.sh"
+  - path: "./build.sh"
     action: modify
     section: text-source-unit
     description: "Regenerate the cap project build script from a TD-owned text source unit."

@@ -76,7 +76,7 @@ flowchart TD
 
 ```yaml
 changes:
-  - path: apps/cap/src/hook.rs
+  - path: src/hook.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -87,7 +87,7 @@ changes:
       prevention, absolute cap path selection, and safe single-quote escaping.
       It must not decide which commands are replacements.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: add
     section: logic
     impl_mode: hand-written
@@ -120,7 +120,7 @@ changes:
       Unsupported echo, printf, seq, id, uname, test, cut, tr, awk, xargs, sort, find, which, command,
       and pipe-shaped shell commands keep compatibility fallback.
 
-  - path: apps/cap/src/cli.rs
+  - path: src/cli.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -129,7 +129,7 @@ changes:
       execution. Add cap explain -- <cmd> to show the original command,
       implementation choice, run command, reason, and fallback.
 
-  - path: apps/cap/src/hook.rs
+  - path: src/hook.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -138,7 +138,7 @@ changes:
       simple takeover commands, scout-only commands, and shell-sensitive commands, with
       no hook-level optimizer behavior.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: add
     section: unit-test
     impl_mode: hand-written
@@ -146,7 +146,7 @@ changes:
       Add planner tests for shape-sensitive native takeover, original-command
       fallback, and unsupported command fallback.
 
-  - path: apps/cap/src/command_planner.rs
+  - path: src/command_planner.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -154,7 +154,7 @@ changes:
       Keep unsupported native candidate code out of the active dispatch path so
       only safe shell-free subsets are claimed.
 
-  - path: apps/cap/src/cap_frontend.c
+  - path: src/cap_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -164,7 +164,7 @@ changes:
       useful stderr diagnostics instead of silently failing. Provide a direct
       run-string cat path so hook-emitted cap run cat keeps native takeover.
 
-  - path: apps/cap/src/cap_fast_frontend.c
+  - path: src/cap_fast_frontend.c
     action: modify
     section: logic
     impl_mode: hand-written
@@ -176,7 +176,7 @@ changes:
       replacement commands and dispatch them to the same fast implementation
       family as cap <cmd>.
 
-  - path: apps/cap/Cargo.toml
+  - path: Cargo.toml
     action: modify
     section: e2e-test
     impl_mode: hand-written
@@ -184,7 +184,7 @@ changes:
       Register a custom command_resources benchmark target for same-name
       command CPU-time and peak-RSS comparisons.
 
-  - path: apps/cap/benches/command_resources.rs
+  - path: benches/command_resources.rs
     action: add
     section: e2e-test
     impl_mode: hand-written
@@ -197,7 +197,7 @@ changes:
       without CPU/RSS admission failure. Candidate rows remain only for
       incomplete command shapes that do not yet have a safe native subset.
 
-  - path: apps/cap/tests/behavior_cap_command_replacement_parity.rs
+  - path: tests/behavior_cap_command_replacement_parity.rs
     action: add
     section: e2e-test
     impl_mode: hand-written
@@ -207,7 +207,7 @@ changes:
       cap run command-string replacements with system commands for stdout, exit
       codes, quiet nonzero cases, and missing-path stderr behavior.
 
-  - path: apps/cap/BENCHMARKS.md
+  - path: BENCHMARKS.md
     action: add
     section: e2e-test
     impl_mode: hand-written
@@ -216,7 +216,7 @@ changes:
       commands currently win or lose against the bare original-command
       comparison contract.
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: overview
     impl_mode: hand-written

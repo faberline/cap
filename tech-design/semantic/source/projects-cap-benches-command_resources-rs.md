@@ -1,6 +1,6 @@
 ---
 id: projects-cap-benches-command_resources-rs
-summary: Lossless rust-source-unit coverage for `apps/cap/benches/command_resources.rs`.
+summary: Lossless rust-source-unit coverage for `benches/command_resources.rs`.
 capability_refs:
   - id: agent-hook-installation
     role: primary
@@ -10,18 +10,18 @@ capability_refs:
 fill_sections: [overview, rust-source-unit, changes]
 ---
 
-# Standardized apps/cap/benches/command_resources.rs
+# Standardized benches/command_resources.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
 
-Lossless rust-source-unit coverage for `apps/cap/benches/command_resources.rs`.
+Lossless rust-source-unit coverage for `benches/command_resources.rs`.
 
 ## Source
 <!-- type: rust-source-unit lang: rust -->
 
 ````rust
-// SPEC-MANAGED: apps/cap/tech-design/semantic/source/projects-cap-benches-command_resources-rs.md#rust-source-unit
+// SPEC-MANAGED: tech-design/semantic/source/projects-cap-benches-command_resources-rs.md#rust-source-unit
 // CODEGEN-BEGIN
 //! Resource benchmarks for same-name `cap <command>` replacements.
 //!
@@ -64,7 +64,7 @@ enum Gate {
     Candidate,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
 impl Gate {
     fn label(self) -> &'static str {
         match self {
@@ -555,7 +555,7 @@ struct Fixture {
     root: PathBuf,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#e2e-test
 impl Fixture {
     fn create() -> Result<Self> {
         let dir = tempfile::tempdir().context("creating cap benchmark fixture")?;
@@ -1173,7 +1173,7 @@ fn strings<const N: usize>(values: [&str; N]) -> Vec<String> {
 
 ```yaml
 changes:
-  - path: "apps/cap/benches/command_resources.rs"
+  - path: "benches/command_resources.rs"
     action: modify
     section: rust-source-unit
     impl_mode: codegen

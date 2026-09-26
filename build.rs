@@ -8,8 +8,8 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
-    if std::path::Path::new("../../.git/HEAD").exists() {
-        println!("cargo:rerun-if-changed=../../.git/HEAD");
+    if std::path::Path::new(".git/HEAD").exists() {
+        println!("cargo:rerun-if-changed=.git/HEAD");
     }
 
     let git_sha = short_sha().unwrap_or_else(|| "unknown".to_string());

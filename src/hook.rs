@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Claude Code / Codex CLI `PreToolUse` hook adapter.
 //!
@@ -32,7 +32,7 @@ use serde::{Deserialize, Serialize};
 /// Wrappers stripped while looking for the "real" first program.
 const PASSTHROUGH_WRAPPERS: &[&str] = &["env", "time", "nice", "nohup", "exec"];
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HookAgent {
     Auto,
@@ -109,7 +109,7 @@ struct AgyHookOutput {
 
 /// Read JSON from stdin, decide, print JSON to stdout. Always
 /// returns Ok — the binary exits 0 even on malformed input.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn run_bash_hook(agent: HookAgent) -> anyhow::Result<()> {
     let mut buf = String::new();
     std::io::stdin().read_to_string(&mut buf)?;
@@ -326,7 +326,7 @@ const SHELLS: &[&str] = &["bash", "sh", "zsh", "dash", "ksh"];
 /// the first real token of the script. For a shell invocation we look
 /// inside `-c <script>`; otherwise we just take the basename. Returns a
 /// basename like `cargo` / `pytest` / `bash`.
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn effective_program(program: &str, args: &[String]) -> String {
     let base = basename(program);
     if SHELLS.contains(&base) {
@@ -532,8 +532,8 @@ mod tests {
             "cap run 'ls -la | wc -l'"
         );
         assert_eq!(
-            rewrite("cd apps/cap && cargo test").unwrap(),
-            "cap run 'cd apps/cap && cargo test'"
+            rewrite("cd src && cargo test").unwrap(),
+            "cap run 'cd src && cargo test'"
         );
     }
 
@@ -626,7 +626,7 @@ mod tests {
         // Plain command.
         assert_eq!(ep(&["-c", "cargo test -p cap"]), "cargo");
         // Leading `cd <dir> &&` prefix (the common agent pattern).
-        assert_eq!(ep(&["-c", "cd apps/cap && cargo test"]), "cargo");
+        assert_eq!(ep(&["-c", "cd src && cargo test"]), "cargo");
         // Chained cd, semicolon separator.
         assert_eq!(ep(&["-c", "cd a; cd b; pytest -k foo"]), "pytest");
         // env wrapper + assignment skipped.

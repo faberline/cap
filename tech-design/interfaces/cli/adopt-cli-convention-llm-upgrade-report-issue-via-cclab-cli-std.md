@@ -173,7 +173,7 @@ requirementDiagram
 
 ```yaml
 changes:
-  - path: apps/cap/Cargo.toml
+  - path: Cargo.toml
     action: modify
     section: logic
     impl_mode: hand-written
@@ -181,7 +181,7 @@ changes:
       Add cli-std with default features disabled and expose a release feature
       that enables cli-std/online for upgrade and issue network paths.
 
-  - path: apps/cap/build.rs
+  - path: build.rs
     action: create
     section: logic
     impl_mode: hand-written
@@ -189,7 +189,7 @@ changes:
       Stamp CAP_TARGET, CAP_GIT_SHA, and CAP_BUILT_AT for cli_std::ToolInfo
       release asset and diagnostics metadata.
 
-  - path: apps/cap/src/cli.rs
+  - path: src/cli.rs
     action: modify
     section: logic
     impl_mode: hand-written
@@ -198,7 +198,7 @@ changes:
       deprecated report-issue compatibility entrypoint through cli-std while
       preserving existing cap domain command behavior.
 
-  - path: apps/cap/src/cli.rs
+  - path: src/cli.rs
     action: modify
     section: unit-test
     impl_mode: hand-written
@@ -206,7 +206,7 @@ changes:
       Cover help registration, shared llm rendering, project-scoped issue
       create payloads, and report-issue compatibility payloads.
 
-  - path: apps/cap/README.md
+  - path: README.md
     action: modify
     section: logic
     impl_mode: hand-written

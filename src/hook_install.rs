@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Hook registration backend for `cap on` / `cap off` — wires the cap
 //! PreToolUse hook into Claude Code, Codex CLI, or AGY.
@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_json::{json, Value as JsonValue};
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Agent {
     Claude,
@@ -53,7 +53,7 @@ impl HookState {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn enable(agent: Agent, print: bool) -> Result<()> {
     // Use the absolute path so the hook fires correctly even when
     // the parent process's PATH doesn't include cap's install dir.
@@ -766,7 +766,7 @@ enum MergeStatus {
     AlreadyPresent,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 impl MergeStatus {
     fn describe(&self) -> &'static str {
         match self {

@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 #![allow(dead_code)]
 //! Same-name command planner for `cap <cmd>`.
@@ -21,14 +21,14 @@ use std::{
 use anyhow::{Context, Result};
 
 const SORT_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
-// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 const LS_NATIVE_MIN_ENTRIES: usize = 1024;
 const FIND_NATIVE_MIN_ENTRIES: usize = 512;
 const SED_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 const SED_NATIVE_MIN_SPAN_LINES: usize = 1024;
 const GREP_NATIVE_MIN_FILES: usize = 64;
 const GREP_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 const WC_NATIVE_MIN_FILES: usize = 64;
 const WC_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 const AWK_DELIMITED_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
@@ -44,14 +44,14 @@ const UNEXPAND_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 const COMM_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 const JOIN_NATIVE_MIN_BYTES: u64 = 1024 * 1024;
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CommandPlan {
     External(ExternalPlan),
     Native(NativePlan),
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExternalPlan {
     pub program: String,
@@ -63,14 +63,14 @@ pub struct ExternalPlan {
     pub fallback: Option<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExternalImplementation {
     Original,
     Replacement,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NativePlan {
     pub command: NativeCommand,
@@ -79,7 +79,7 @@ pub struct NativePlan {
     pub reason: String,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NativeCommand {
     True,
@@ -300,51 +300,51 @@ pub enum NativeCommand {
     /// per-invocation override of the process's single global cwd, safe only
     /// under the resident shell's single-invocation-at-a-time model — never
     /// dispatch two `WithCwd` commands concurrently in-process.
-    /// @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
+    /// @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
     WithCwd(Box<NativeCommand>, PathBuf),
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BasenamePlan {
     pub path: String,
     pub suffix: Option<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DirnamePlan {
     pub path: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EchoPlan {
     pub args: Vec<String>,
     pub newline: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PrintfFormat {
     String,
     StringNewline,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PrintfPlan {
     pub format: PrintfFormat,
     pub args: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PrintfLiteralPlan {
     pub bytes: Vec<u8>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SeqPlan {
     pub first: i64,
@@ -352,7 +352,7 @@ pub struct SeqPlan {
     pub last: i64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IdKind {
     Default,
@@ -364,13 +364,13 @@ pub enum IdKind {
     GroupNames,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct IdPlan {
     pub kind: IdKind,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnameField {
     Sysname,
@@ -382,13 +382,13 @@ pub enum UnameField {
     All,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnamePlan {
     pub field: UnameField,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SingleLineProducerSource {
     Pwd,
@@ -401,14 +401,14 @@ pub enum SingleLineProducerSource {
     PrintenvName(String),
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSingleLineProducerPlan {
     pub source: SingleLineProducerSource,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSingleLineGrepProducerPlan {
     pub source: SingleLineProducerSource,
@@ -416,7 +416,7 @@ pub struct PipeSingleLineGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TestExpr {
     FileExists(String),
@@ -435,21 +435,21 @@ pub enum TestExpr {
     IntLe(i64, i64),
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TestPlan {
     pub expr: TestExpr,
     pub negated: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HeadTailMode {
     Lines,
     Bytes,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HeadTailPlan {
     pub file: String,
@@ -458,7 +458,7 @@ pub struct HeadTailPlan {
     pub count: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeHeadProducerPlan {
     pub file: String,
@@ -467,7 +467,7 @@ pub struct PipeHeadProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeHeadGrepProducerPlan {
     pub file: String,
@@ -477,7 +477,7 @@ pub struct PipeHeadGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeTailProducerPlan {
     pub file: String,
@@ -486,7 +486,7 @@ pub struct PipeTailProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeTailGrepProducerPlan {
     pub file: String,
@@ -496,14 +496,14 @@ pub struct PipeTailGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSedProducerPlan {
     pub sed: SedPrintPlan,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSedGrepProducerPlan {
     pub sed: SedPrintPlan,
@@ -511,14 +511,14 @@ pub struct PipeSedGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCutProducerPlan {
     pub cut: CutPlan,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCutGrepProducerPlan {
     pub cut: CutPlan,
@@ -526,7 +526,7 @@ pub struct PipeCutGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatTrProducerPlan {
     pub file: String,
@@ -534,7 +534,7 @@ pub struct PipeCatTrProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatTrGrepProducerPlan {
     pub file: String,
@@ -543,41 +543,41 @@ pub struct PipeCatTrGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MkdirPlan {
     pub paths: Vec<String>,
     pub parents: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TouchPlan {
     pub paths: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SideEffectEmptyProducer {
     Mkdir(MkdirPlan),
     Touch(TouchPlan),
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSideEffectEmptyProducerPlan {
     pub source: SideEffectEmptyProducer,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePredicateEmptyProducerPlan {
     pub test: TestPlan,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeWcProducerPlan {
     pub wc: WcLinesPlan,
@@ -585,13 +585,13 @@ pub struct PipeWcProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DuSkPlan {
     pub path: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeDuProducerPlan {
     pub du: DuSkPlan,
@@ -599,7 +599,7 @@ pub struct PipeDuProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfLiteralProducerPlan {
     pub printf: PrintfLiteralPlan,
@@ -607,20 +607,20 @@ pub struct PipePrintfLiteralProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AwkNeedleCountPlan {
     pub file: String,
     pub stdin: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AwkRecordCountPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AwkFirstFieldPlan {
     pub file: String,
@@ -630,7 +630,7 @@ pub struct AwkFirstFieldPlan {
     pub separator: Option<u8>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AwkTwoFieldsPlan {
     pub file: String,
@@ -638,24 +638,24 @@ pub struct AwkTwoFieldsPlan {
     pub separator: u8,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct XargsEchoPlan {
     pub mode: XargsEchoMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum XargsEchoMode {
     OneLine,
     Batch { size: usize },
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct XargsWcLinesPlan;
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeXargsEchoProducerPlan {
     pub mode: GrepFilePipeMode,
@@ -663,13 +663,13 @@ pub struct PipeXargsEchoProducerPlan {
     pub source_mode: XargsEchoMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeEmptyProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PathLookupMode {
     Which,
@@ -677,28 +677,28 @@ pub enum PathLookupMode {
     CommandV,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PathLookupPlan {
     pub mode: PathLookupMode,
     pub names: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EnvironmentMode {
     Env,
     Printenv,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EnvironmentPlan {
     pub mode: EnvironmentMode,
     pub name: Option<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LsEntryMode {
     Visible,
@@ -706,65 +706,65 @@ pub enum LsEntryMode {
     AlmostAll,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LsPipeSource {
     pub path: String,
     pub mode: LsEntryMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsWcLinesPlan {
     pub source: LsPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsHeadPlan {
     pub source: LsPipeSource,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsTailPlan {
     pub source: LsPipeSource,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsSortPlan {
     pub source: LsPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsSortXargsEchoPlan {
     pub source: LsPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsSortUniqPlan {
     pub source: LsPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsSortUniqWcLinesPlan {
     pub source: LsPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsSortUniqProducerPlan {
     pub source: LsPipeSource,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsSortUniqGrepProducerPlan {
     pub source: LsPipeSource,
@@ -772,14 +772,14 @@ pub struct PipeLsSortUniqGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsGrepPlan {
     pub source: LsPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsGrepProducerPlan {
     pub source: LsPipeSource,
@@ -787,62 +787,62 @@ pub struct PipeLsGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsGrepWcLinesPlan {
     pub source: LsPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsGrepXargsEchoPlan {
     pub source: LsPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsGrepSortXargsEchoPlan {
     pub source: LsPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeLsXargsEchoPlan {
     pub source: LsPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatWcLinesPlan {
     pub file: String,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatHeadPlan {
     pub file: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatTailPlan {
     pub file: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepPlan {
     pub file: String,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepPipelinePlan {
     pub file: String,
@@ -850,7 +850,7 @@ pub struct PipeCatGrepPipelinePlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepSortUniqProducerPlan {
     pub file: String,
@@ -858,35 +858,35 @@ pub struct PipeCatGrepSortUniqProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepXargsEchoPlan {
     pub file: String,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepXargsWcLinesPlan {
     pub file: String,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepSortXargsEchoPlan {
     pub file: String,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatGrepSortXargsWcLinesPlan {
     pub file: String,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatCutPlan {
     pub file: String,
@@ -894,33 +894,33 @@ pub struct PipeCatCutPlan {
     pub field: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatTrPlan {
     pub file: String,
     pub tr: TrPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatUniqPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatUniqWcLinesPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatUniqProducerPlan {
     pub file: String,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatUniqGrepProducerPlan {
     pub file: String,
@@ -928,14 +928,14 @@ pub struct PipeCatUniqGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeUniqProducerPlan {
     pub file: String,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeUniqGrepProducerPlan {
     pub file: String,
@@ -943,85 +943,85 @@ pub struct PipeUniqGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortUniqPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortUniqWcLinesPlan {
     pub file: String,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortHeadPlan {
     pub file: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortTailPlan {
     pub file: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortWcLinesPlan {
     pub file: String,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatXargsEchoPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatXargsWcLinesPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatXargsWcProducerPlan {
     pub file: String,
     pub mode: XargsWcOutputMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortXargsEchoPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortXargsWcLinesPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeCatSortXargsWcProducerPlan {
     pub file: String,
     pub mode: XargsWcOutputMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepHeadPlan {
     pub pattern: String,
@@ -1029,7 +1029,7 @@ pub struct PipeGrepHeadPlan {
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepTailPlan {
     pub pattern: String,
@@ -1037,21 +1037,21 @@ pub struct PipeGrepTailPlan {
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortPlan {
     pub pattern: String,
     pub root: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortUniqPlan {
     pub pattern: String,
     pub root: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortUniqProducerPlan {
     pub pattern: String,
@@ -1059,14 +1059,14 @@ pub struct PipeGrepSortUniqProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortUniqWcLinesPlan {
     pub pattern: String,
     pub root: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortHeadPlan {
     pub pattern: String,
@@ -1074,7 +1074,7 @@ pub struct PipeGrepSortHeadPlan {
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortTailPlan {
     pub pattern: String,
@@ -1082,21 +1082,21 @@ pub struct PipeGrepSortTailPlan {
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepSortWcLinesPlan {
     pub pattern: String,
     pub root: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepWcLinesPlan {
     pub pattern: String,
     pub root: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepFilePlan {
     pub pattern: String,
@@ -1104,7 +1104,7 @@ pub struct PipeGrepFilePlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepFileSortUniqProducerPlan {
     pub pattern: String,
@@ -1112,14 +1112,14 @@ pub struct PipeGrepFileSortUniqProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CutFilterPlan {
     pub delimiter: u8,
     pub field: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepFileCutProducerPlan {
     pub pattern: String,
@@ -1128,7 +1128,7 @@ pub struct PipeGrepFileCutProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepFileCutGrepProducerPlan {
     pub pattern: String,
@@ -1138,7 +1138,7 @@ pub struct PipeGrepFileCutGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepFileAwkProducerPlan {
     pub pattern: String,
@@ -1148,7 +1148,7 @@ pub struct PipeGrepFileAwkProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeGrepFileAwkGrepProducerPlan {
     pub pattern: String,
@@ -1159,7 +1159,7 @@ pub struct PipeGrepFileAwkGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WcCountMode {
     Lines,
@@ -1167,7 +1167,7 @@ pub enum WcCountMode {
     Words,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 impl WcCountMode {
     fn from_flag(flag: &str) -> Option<Self> {
         match flag {
@@ -1187,7 +1187,7 @@ impl WcCountMode {
     }
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GrepFilePipeMode {
     Lines,
@@ -1213,7 +1213,7 @@ pub enum GrepFilePipeMode {
     XargsWcOutput { mode: XargsWcOutputMode },
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeAwkXargsEchoPlan {
     pub file: String,
@@ -1221,7 +1221,7 @@ pub struct PipeAwkXargsEchoPlan {
     pub field: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeAwkXargsWcLinesPlan {
     pub file: String,
@@ -1229,7 +1229,7 @@ pub struct PipeAwkXargsWcLinesPlan {
     pub field: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeAwkProducerPlan {
     pub file: String,
@@ -1238,7 +1238,7 @@ pub struct PipeAwkProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeAwkGrepProducerPlan {
     pub file: String,
@@ -1248,7 +1248,7 @@ pub struct PipeAwkGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeAwkSortUniqProducerPlan {
     pub file: String,
@@ -1257,7 +1257,7 @@ pub struct PipeAwkSortUniqProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoWcLinesPlan {
     pub echo: EchoPlan,
@@ -1265,28 +1265,28 @@ pub struct PipeEchoWcLinesPlan {
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoHeadPlan {
     pub echo: EchoPlan,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoTailPlan {
     pub echo: EchoPlan,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoTrPlan {
     pub echo: EchoPlan,
     pub tr: TrPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoAwkProducerPlan {
     pub echo: EchoPlan,
@@ -1295,55 +1295,55 @@ pub struct PipeEchoAwkProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoXargsEchoPlan {
     pub echo: EchoPlan,
     pub mode: XargsEchoMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEchoXargsWcLinesPlan {
     pub echo: EchoPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfWcLinesPlan {
     pub args: Vec<String>,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfHeadPlan {
     pub args: Vec<String>,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfTailPlan {
     pub args: Vec<String>,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfGrepPlan {
     pub args: Vec<String>,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfTrPlan {
     pub printf: PrintfPlan,
     pub tr: TrPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfAwkProducerPlan {
     pub args: Vec<String>,
@@ -1352,14 +1352,14 @@ pub struct PipePrintfAwkProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfProducerPlan {
     pub args: Vec<String>,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfGrepProducerPlan {
     pub args: Vec<String>,
@@ -1367,14 +1367,14 @@ pub struct PipePrintfGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfSortUniqProducerPlan {
     pub args: Vec<String>,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfGrepSortUniqProducerPlan {
     pub args: Vec<String>,
@@ -1382,41 +1382,41 @@ pub struct PipePrintfGrepSortUniqProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfXargsEchoPlan {
     pub args: Vec<String>,
     pub mode: XargsEchoMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePrintfXargsWcLinesPlan {
     pub args: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeSeqWcLinesPlan {
     pub seq: SeqPlan,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeSeqHeadPlan {
     pub seq: SeqPlan,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSeqTailPlan {
     pub seq: SeqPlan,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSeqGrepProducerPlan {
     pub seq: SeqPlan,
@@ -1424,21 +1424,21 @@ pub struct PipeSeqGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSeqProducerPlan {
     pub seq: SeqPlan,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeSeqSortUniqProducerPlan {
     pub seq: SeqPlan,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSeqGrepSortUniqProducerPlan {
     pub seq: SeqPlan,
@@ -1446,41 +1446,41 @@ pub struct PipeSeqGrepSortUniqProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeSeqXargsEchoPlan {
     pub seq: SeqPlan,
     pub mode: XargsEchoMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeYesHeadPlan {
     pub value: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePathLookupWcLinesPlan {
     pub lookup: PathLookupPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePathLookupHeadPlan {
     pub lookup: PathLookupPlan,
     pub limit: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePathLookupTailPlan {
     pub lookup: PathLookupPlan,
     pub limit: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePathLookupGrepProducerPlan {
     pub lookup: PathLookupPlan,
@@ -1488,41 +1488,41 @@ pub struct PipePathLookupGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipePathLookupProducerPlan {
     pub lookup: PathLookupPlan,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEnvironmentWcLinesPlan {
     pub env: EnvironmentPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEnvironmentHeadPlan {
     pub env: EnvironmentPlan,
     pub limit: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEnvironmentTailPlan {
     pub env: EnvironmentPlan,
     pub limit: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEnvironmentGrepPlan {
     pub env: EnvironmentPlan,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEnvironmentGrepProducerPlan {
     pub env: EnvironmentPlan,
@@ -1530,66 +1530,66 @@ pub struct PipeEnvironmentGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeEnvironmentSortPlan {
     pub env: EnvironmentPlan,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeHostnameWcLinesPlan;
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeHostnameHeadPlan {
     pub limit: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeHostnameTailPlan {
     pub limit: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeHostnameGrepPlan {
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeHostnameGrepProducerPlan {
     pub pattern: String,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PipeHostnameSortPlan;
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortUniqPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortUniqWcLinesPlan {
     pub file: String,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortUniqProducerPlan {
     pub file: String,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortUniqGrepProducerPlan {
     pub file: String,
@@ -1597,7 +1597,7 @@ pub struct PipeSortUniqGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortGrepProducerPlan {
     pub file: String,
@@ -1605,47 +1605,47 @@ pub struct PipeSortGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortHeadPlan {
     pub file: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortTailPlan {
     pub file: String,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortWcLinesPlan {
     pub file: String,
     pub mode: WcCountMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortXargsEchoPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortXargsWcLinesPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeSortXargsWcProducerPlan {
     pub file: String,
     pub mode: XargsWcOutputMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FindPipeSource {
     pub root: String,
@@ -1653,19 +1653,19 @@ pub struct FindPipeSource {
     pub max_depth: Option<usize>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindXargsEchoPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindXargsWcLinesPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum XargsWcOutputMode {
     WcLines,
@@ -1679,7 +1679,7 @@ pub enum XargsWcOutputMode {
     SortTail { limit: u64 },
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindXargsWcProducerPlan {
     pub source: FindPipeSource,
@@ -1689,7 +1689,7 @@ pub struct PipeFindXargsWcProducerPlan {
     pub mode: XargsWcOutputMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindGrepProducerPlan {
     pub source: FindPipeSource,
@@ -1697,80 +1697,80 @@ pub struct PipeFindGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindGrepXargsEchoPlan {
     pub source: FindPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindGrepXargsWcLinesPlan {
     pub source: FindPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindGrepSortXargsEchoPlan {
     pub source: FindPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindGrepSortXargsWcLinesPlan {
     pub source: FindPipeSource,
     pub pattern: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindWcLinesPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindHeadPlan {
     pub source: FindPipeSource,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindTailPlan {
     pub source: FindPipeSource,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortUniqPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortUniqWcLinesPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortUniqProducerPlan {
     pub source: FindPipeSource,
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortUniqGrepProducerPlan {
     pub source: FindPipeSource,
@@ -1778,65 +1778,65 @@ pub struct PipeFindSortUniqGrepProducerPlan {
     pub mode: GrepFilePipeMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortXargsEchoPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortXargsWcLinesPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortWcLinesPlan {
     pub source: FindPipeSource,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortHeadPlan {
     pub source: FindPipeSource,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PipeFindSortTailPlan {
     pub source: FindPipeSource,
     pub limit: u64,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LsPlan {
     pub path: String,
     pub mode: LsEntryMode,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SortPlan {
     pub file: String,
     pub stdin: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NlPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RevPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PastePlan {
     pub files: Vec<String>,
@@ -1844,14 +1844,14 @@ pub struct PastePlan {
     pub serial: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CommPlan {
     pub left: String,
     pub right: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JoinPlan {
     pub left: String,
@@ -1859,27 +1859,27 @@ pub struct JoinPlan {
     pub delimiter: u8,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExpandPlan {
     pub file: String,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FoldPlan {
     pub file: String,
     pub width: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnexpandPlan {
     pub file: String,
     pub all: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UniqPlan {
     pub file: String,
@@ -1887,7 +1887,7 @@ pub struct UniqPlan {
     pub count: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CutPlan {
     pub file: String,
@@ -1896,7 +1896,7 @@ pub struct CutPlan {
     pub field: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CutCharsPlan {
     pub file: String,
@@ -1904,7 +1904,7 @@ pub struct CutCharsPlan {
     pub end: Option<usize>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CutFieldsPlan {
     pub file: String,
@@ -1913,7 +1913,7 @@ pub struct CutFieldsPlan {
     pub end: usize,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CutFieldListPlan {
     pub file: String,
@@ -1921,13 +1921,13 @@ pub struct CutFieldListPlan {
     pub fields: Vec<usize>,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TrPlan {
     pub mode: TrMode,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TrMode {
     Translate { from: Vec<u8>, to: Vec<u8> },
@@ -1935,13 +1935,13 @@ pub enum TrMode {
     Squeeze { set: Vec<u8> },
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CatPlan {
     pub files: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FindPlan {
     pub root: String,
@@ -1949,14 +1949,14 @@ pub struct FindPlan {
     pub name_pattern: Option<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FindType {
     File,
     Dir,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SedPrintPlan {
     pub file: String,
@@ -1972,7 +1972,7 @@ pub struct SedSubstitutePlan {
     pub global: bool,
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GrepFilePlan {
     /// One or more OR-combined literal patterns (repeatable `-e PATTERN`, or
@@ -1991,20 +1991,20 @@ pub struct GrepFilePlan {
     pub context_after: usize,
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WcLinesPlan {
     pub files: Vec<String>,
     pub mode: WcCountMode,
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WcAllPlan {
     pub files: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 impl CommandPlan {
     pub fn explain(&self) -> String {
         match self {
@@ -2358,7 +2358,7 @@ impl CommandPlan {
     }
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn plan(command: &[String], label: Option<String>) -> CommandPlan {
     plan_with_tool_resolver(command, label, command_on_path)
 }
@@ -2366,7 +2366,7 @@ pub fn plan(command: &[String], label: Option<String>) -> CommandPlan {
 /// Plan one Bash command string. Simple shell-free strings are parsed into argv
 /// and routed through the same replacement planner as `cap <cmd>`; strings that
 /// need shell semantics stay under `bash -c`.
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn plan_shell(command: &str, label: Option<String>) -> CommandPlan {
     let original = command.trim().to_string();
     let planned_label = label.or_else(|| Some(original.clone()));
@@ -2404,7 +2404,7 @@ pub fn plan_shell(command: &str, label: Option<String>) -> CommandPlan {
 /// byte index of the first `&` of that pair. A lone `&` not immediately
 /// followed by a second `&`, a second top-level `&&`, or an unterminated
 /// quote disqualifies the whole line (`None`).
-/// @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#logic
+/// @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#logic
 fn find_single_top_level_and_and(command: &str) -> Option<usize> {
     #[derive(Clone, Copy)]
     enum State {
@@ -2472,7 +2472,7 @@ fn find_single_top_level_and_and(command: &str) -> Option<usize> {
 /// straight through to the unmodified `bash -c <original>` fallback — never
 /// a partial native-tail execution with a stale `cd` prefix silently
 /// dropped.
-/// @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#logic
+/// @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#logic
 fn plan_cd_prefix(command: &str, label: Option<String>) -> Option<NativePlan> {
     let original = command.trim();
     let and_idx = find_single_top_level_and_and(original)?;
@@ -5811,7 +5811,7 @@ fn plan_tail_grep_producer_mode(
     }
 }
 
-/// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+/// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 impl SingleLineProducerSource {
     fn pipe_name(&self) -> &'static str {
         match self {
@@ -5889,7 +5889,7 @@ fn parse_single_line_pipe_source(left: &[String]) -> Option<SingleLineProducerSo
     }
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_sed_pipe_source(left: &[String]) -> Option<SedPrintPlan> {
     if left.len() != 4 || left[0] != "sed" || left[1] != "-n" {
         return None;
@@ -5907,7 +5907,7 @@ fn parse_sed_pipe_source(left: &[String]) -> Option<SedPrintPlan> {
     })
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cat_sed_direct_source(words: &[String]) -> Option<SedPrintPlan> {
     if words.len() != 6
         || words[0] != "cat"
@@ -5929,7 +5929,7 @@ fn parse_cat_sed_direct_source(words: &[String]) -> Option<SedPrintPlan> {
     })
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cat_sed_pipe_source(words: &[String]) -> Option<(SedPrintPlan, usize)> {
     if words.len() < 8
         || words[0] != "cat"
@@ -5955,7 +5955,7 @@ fn parse_cat_sed_pipe_source(words: &[String]) -> Option<(SedPrintPlan, usize)> 
     ))
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_awk_print_field_pipe_source(
     words: &[String],
 ) -> Option<(String, Option<String>, usize, usize)> {
@@ -5993,7 +5993,7 @@ fn parse_awk_print_field_pipe_source(
     None
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cat_head_tail_pipe_source(
     words: &[String],
     command: &str,
@@ -6048,7 +6048,7 @@ fn parse_cat_head_tail_pipe_source(
     None
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cut_pipe_source(left: &[String]) -> Option<CutPlan> {
     if left.first().map(|cmd| cmd != "cut").unwrap_or(true) {
         return None;
@@ -6063,7 +6063,7 @@ fn parse_cut_pipe_source(left: &[String]) -> Option<CutPlan> {
     Some(cut)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cat_cut_pipe_source(words: &[String]) -> Option<(CutPlan, usize)> {
     if words.len() < 7 || words[0] != "cat" || words[2] != "|" || words[3] != "cut" {
         return None;
@@ -6080,7 +6080,7 @@ fn parse_cat_cut_pipe_source(words: &[String]) -> Option<(CutPlan, usize)> {
     Some((cut, downstream_pipe + 1))
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cat_tr_pipe_source(words: &[String]) -> Option<(String, TrPlan, usize)> {
     if words.len() < 7 || words[0] != "cat" || words[2] != "|" || words[3] != "tr" {
         return None;
@@ -6098,7 +6098,7 @@ fn parse_cat_tr_pipe_source(words: &[String]) -> Option<(String, TrPlan, usize)>
     Some((file, tr, downstream_pipe + 1))
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_cat_uniq_pipe_source(words: &[String]) -> Option<(String, usize)> {
     if words.len() < 6
         || words[0] != "cat"
@@ -6116,7 +6116,7 @@ fn parse_cat_uniq_pipe_source(words: &[String]) -> Option<(String, usize)> {
     Some((file, 5))
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_uniq_pipe_source(words: &[String]) -> Option<(String, usize)> {
     if words.len() < 4 || words[0] != "uniq" || words[2] != "|" {
         return None;
@@ -6129,7 +6129,7 @@ fn parse_uniq_pipe_source(words: &[String]) -> Option<(String, usize)> {
     Some((file, 3))
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_sort_uniq_pipe_source(words: &[String]) -> Option<(String, usize)> {
     if words.len() >= 6
         && words[0] == "sort"
@@ -6158,7 +6158,7 @@ fn parse_sort_uniq_pipe_source(words: &[String]) -> Option<(String, usize)> {
     None
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_sort_pipe_source(words: &[String]) -> Option<(String, usize)> {
     if words.len() >= 4 && words[0] == "sort" && words[2] == "|" {
         let file = words[1].clone();
@@ -10367,7 +10367,7 @@ fn plan_grep_file(args: &[String], label: Option<String>, original: &str) -> Opt
 /// `--type`, `--include`, `-u`, `-p`, `--json`, `-U`, more than one file,
 /// or a rejected combined-context form — returns `None`, so the caller
 /// falls back to the unmodified bash fallback.
-/// @spec apps/cap/tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#logic
+/// @spec tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#logic
 fn plan_grep_file_flags(
     args: &[String],
     label: Option<String>,
@@ -10559,7 +10559,7 @@ fn plan_grep_file_flags(
     })
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_wc_args(args: &[String], allow_stdin: bool) -> Option<WcLinesPlan> {
     if args.is_empty() {
         return None;
@@ -10584,7 +10584,7 @@ fn parse_wc_args(args: &[String], allow_stdin: bool) -> Option<WcLinesPlan> {
     Some(WcLinesPlan { files, mode })
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn parse_wc_all_args(args: &[String], allow_stdin: bool) -> Option<WcAllPlan> {
     if !allow_stdin && args.is_empty() {
         return None;
@@ -10605,7 +10605,7 @@ fn parse_wc_all_args(args: &[String], allow_stdin: bool) -> Option<WcAllPlan> {
     })
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn plan_wc(args: &[String], label: Option<String>, original: &str) -> Option<NativePlan> {
     if let Some(plan) = parse_wc_args(args, true) {
         let mode = plan.mode;
@@ -10639,7 +10639,7 @@ fn plan_wc(args: &[String], label: Option<String>, original: &str) -> Option<Nat
     })
 }
 
-/// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+/// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 fn dir_entries_at_least(path: &Path, min: usize, include_hidden: bool) -> bool {
     let Ok(entries) = fs::read_dir(path) else {
         return false;
@@ -10658,7 +10658,7 @@ fn dir_entries_at_least(path: &Path, min: usize, include_hidden: bool) -> bool {
     false
 }
 
-/// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+/// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 fn tree_entries_at_least(root: &Path, min: usize) -> bool {
     let mut count = 0usize;
     let mut stack = vec![root.to_path_buf()];
@@ -10684,7 +10684,7 @@ fn tree_entries_at_least(root: &Path, min: usize) -> bool {
     false
 }
 
-/// @spec apps/cap/tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
+/// @spec tech-design/logic/add-workload-sensitive-native-command-gates.md#changes
 fn grep_workload_at_least(root: &Path, min_files: usize, min_bytes: u64) -> bool {
     let mut files = 0usize;
     let mut bytes = 0u64;
@@ -10711,7 +10711,7 @@ fn grep_workload_at_least(root: &Path, min_files: usize, min_bytes: u64) -> bool
     false
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn run_native(plan: &NativePlan) -> Result<ExitCode> {
     let mut stdout = io::stdout().lock();
     let mut stderr = io::stderr().lock();
@@ -10727,12 +10727,12 @@ pub fn run_native(plan: &NativePlan) -> Result<ExitCode> {
 /// cwd; it is safe under the resident shell's single-invocation-at-a-time
 /// model and NOT safe if two `WithCwd` commands are ever dispatched
 /// concurrently in-process.
-/// @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
+/// @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
 struct CwdGuard {
     previous: PathBuf,
 }
 
-/// @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
+/// @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
 impl CwdGuard {
     fn enter(dir: &Path) -> Result<Self> {
         let previous = env::current_dir().context("failed to read current working directory")?;
@@ -10742,7 +10742,7 @@ impl CwdGuard {
     }
 }
 
-/// @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
+/// @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#changes
 impl Drop for CwdGuard {
     fn drop(&mut self) {
         let _ = env::set_current_dir(&self.previous);
@@ -12459,7 +12459,7 @@ fn run_pipe_sort_uniq_wc_lines(
     Ok(0)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_sort_uniq_lines(file: &str) -> Result<Vec<Vec<u8>>> {
     let sorted = sorted_file_lines(file)?;
     let mut previous: Option<(usize, usize)> = None;
@@ -12487,7 +12487,7 @@ fn collect_sort_uniq_grep_lines(file: &str, pattern: &str) -> Result<Vec<Vec<u8>
     Ok(lines)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_sort_lines(file: &str) -> Result<Vec<Vec<u8>>> {
     let sorted = sorted_file_lines(file)?;
     let mut lines = Vec::new();
@@ -12766,7 +12766,7 @@ fn run_pipe_cat_uniq_wc_lines(
     Ok(0)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_uniq_lines_for_command(
     command_name: &str,
     file: &str,
@@ -13914,7 +13914,7 @@ fn run_pipe_tail_grep_producer(
     run_head_line_producer(lines, plan.mode, stdout, stderr, true, false)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_sed_print_lines(plan: &SedPrintPlan, stderr: &mut dyn Write) -> Result<Vec<Vec<u8>>> {
     let file_handle = match fs::File::open(&plan.file) {
         Ok(file_handle) => file_handle,
@@ -13976,7 +13976,7 @@ fn run_pipe_sed_grep_producer(
     run_head_line_producer(lines, plan.mode, stdout, stderr, true, false)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn cut_line_bytes(line: &[u8], delimiter: u8, field: usize) -> Vec<u8> {
     let content = line.strip_suffix(b"\n").unwrap_or(line);
     let mut output = Vec::new();
@@ -14006,7 +14006,7 @@ fn cut_line_bytes(line: &[u8], delimiter: u8, field: usize) -> Vec<u8> {
     output
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_cut_lines(plan: &CutPlan, stderr: &mut dyn Write) -> Result<Vec<Vec<u8>>> {
     if plan.stdin {
         let stdin = io::stdin();
@@ -14135,7 +14135,7 @@ fn run_pipe_cut_grep_producer(
     run_head_line_producer(lines, plan.mode, stdout, stderr, true, false)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_cat_tr_lines(file: &str, tr: &TrPlan, stderr: &mut dyn Write) -> Result<Vec<Vec<u8>>> {
     let mut file_handle = match fs::File::open(file) {
         Ok(file_handle) => file_handle,
@@ -16041,7 +16041,7 @@ fn collect_grep_plain_lines_reader<R: BufRead>(
 /// lines for the zero-flag pipe-fusion consumers and is left untouched),
 /// `run_grep_file` needs the full line set to build `-A`/`-B`/`-C` context
 /// windows around each match.
-/// @spec apps/cap/tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
+/// @spec tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
 fn read_all_grep_lines(file: &str, stderr: &mut dyn Write) -> Result<(Vec<Vec<u8>>, bool)> {
     if file.is_empty() {
         let stdin = io::stdin();
@@ -16084,7 +16084,7 @@ fn read_all_grep_lines_reader<R: BufRead>(
 
 /// Every non-overlapping occurrence of any `needles` entry within `content`,
 /// sorted by start offset — used for `-o`/`--only-matching` output.
-/// @spec apps/cap/tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
+/// @spec tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
 fn find_literal_occurrences(
     content: &[u8],
     needles: &[LiteralNeedle],
@@ -16163,7 +16163,7 @@ impl LiteralNeedle {
     }
 }
 
-/// @spec apps/cap/tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
+/// @spec tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
 fn run_grep_file(
     plan: &GrepFilePlan,
     stdout: &mut dyn Write,
@@ -16395,7 +16395,7 @@ fn run_pipe_grep_file_sort_uniq_producer(
     run_head_line_producer(lines, plan.mode, stdout, stderr, false, true)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_grep_file_cut_lines(
     file: &str,
     pattern: &str,
@@ -16409,7 +16409,7 @@ fn collect_grep_file_cut_lines(
         .collect())
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_pipe_grep_file_cut_producer(
     plan: &PipeGrepFileCutProducerPlan,
     stdout: &mut dyn Write,
@@ -16419,7 +16419,7 @@ fn run_pipe_grep_file_cut_producer(
     run_head_line_producer(lines, plan.mode, stdout, stderr, false, true)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_pipe_grep_file_cut_grep_producer(
     plan: &PipeGrepFileCutGrepProducerPlan,
     stdout: &mut dyn Write,
@@ -16443,7 +16443,7 @@ fn whitespace_field_line(line: &[u8], field: usize) -> Vec<u8> {
     out
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn collect_grep_file_awk_lines(
     file: &str,
     pattern: &str,
@@ -16461,7 +16461,7 @@ fn collect_grep_file_awk_lines(
         .collect())
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_pipe_grep_file_awk_producer(
     plan: &PipeGrepFileAwkProducerPlan,
     stdout: &mut dyn Write,
@@ -16477,7 +16477,7 @@ fn run_pipe_grep_file_awk_producer(
     run_head_line_producer(lines, plan.mode, stdout, stderr, false, true)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_pipe_grep_file_awk_grep_producer(
     plan: &PipeGrepFileAwkGrepProducerPlan,
     stdout: &mut dyn Write,
@@ -18560,7 +18560,7 @@ fn write_sed_substituted_line(
     Ok(())
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_wc_all(plan: &WcAllPlan, stdout: &mut dyn Write, stderr: &mut dyn Write) -> Result<i32> {
     if plan.files.is_empty() {
         let stdin = io::stdin();
@@ -18596,7 +18596,7 @@ fn run_wc_all(plan: &WcAllPlan, stdout: &mut dyn Write, stderr: &mut dyn Write) 
     Ok(exit)
 }
 
-// @spec apps/cap/tech-design/logic/expand-high-volume-native-command-coverage.md#changes
+// @spec tech-design/logic/expand-high-volume-native-command-coverage.md#changes
 fn run_wc_lines(plan: &WcLinesPlan, stdout: &mut dyn Write, stderr: &mut dyn Write) -> Result<i32> {
     if plan.files.is_empty() {
         let stdin = io::stdin();
@@ -18835,7 +18835,7 @@ fn glob_match(pattern: &str, text: &str) -> bool {
     inner(pattern.as_bytes(), text.as_bytes())
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn render_argv(command: &[String]) -> String {
     match command.split_first() {
         Some((program, args)) => render_command(program, args),
@@ -18843,7 +18843,7 @@ pub fn render_argv(command: &[String]) -> String {
     }
 }
 
-/// @spec apps/cap/tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
+/// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn render_command(program: &str, args: &[String]) -> String {
     std::iter::once(program.to_string())
         .chain(args.iter().map(|arg| shell_quote_arg(arg)))
@@ -22029,7 +22029,7 @@ mod tests {
         assert_eq!(plan.implementation, ExternalImplementation::Original);
     }
 
-    // @spec apps/cap/tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#unit-test
+    // @spec tech-design/logic/recognize-cd-dir-native-command-prefix-in-command-planner.md#unit-test
 
     /// Serializes tests that must temporarily mutate the process's real
     /// `std::env::current_dir()` (cargo test runs test fns concurrently in
@@ -22288,7 +22288,7 @@ mod tests {
     }
 
     // --- #1392: native grep flag support ---
-    // @spec apps/cap/tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
+    // @spec tech-design/logic/extend-native-grep-flag-support-and-recognize-rg-as-native-plann.md#unit-test
 
     fn expect_native_grep_plan(args: &[&str]) -> GrepFilePlan {
         match plan_without_tools(args) {

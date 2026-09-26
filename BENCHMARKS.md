@@ -40,8 +40,8 @@ Set `CAP_BENCH_INCLUDE_CANDIDATES=1` to also print candidate rows without
 making them pass/fail gates. The latest raw JSON and Markdown artifacts are
 written under the cap crate target directory:
 
-- `apps/cap/target/cap-command-resource-bench.json`
-- `apps/cap/target/cap-command-resource-bench.md`
+- `target/cap-command-resource-bench.json`
+- `target/cap-command-resource-bench.md`
 
 Native command promotion is now shape-sensitive rather than size-sensitive.
 Small safe subsets use the same native path as large workloads; benchmarks keep
@@ -765,7 +765,7 @@ moderate and severe regressions into its normal exit status:
 ```bash
 CAP_BENCH_METER_BASELINE=.meter/cap-command-resources.json \
 CAP_BENCH_METER_REPORT=.meter/cap-command-resources-regressions.json \
-  target/debug/meter bench --target apps/cap \
+  meter bench --target . \
   --baseline .meter/cap-command-resources-regressions.json
 ```
 

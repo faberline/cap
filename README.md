@@ -16,9 +16,9 @@ pauses / resumes / kills the commands you run through it.
 
 Last verified: 2026-06-05
 Production readiness: ready
-Tech design root: `apps/cap/tech-design`
-TD lock: `apps/cap/tech-design/td.lock`
-External-contract inventory: `apps/cap/aw.toml`
+Tech design root: `tech-design`
+TD lock: `tech-design/td.lock`
+External-contract inventory: `aw.toml`
 Source ownership: full codegen, 100.0% (15/15)
 Semantic coverage: 100.0%
 Traceability coverage: 100.0%
@@ -191,7 +191,7 @@ Build + install, then run `cap on`:
 
 ```bash
 # 1. build & put `cap` on your PATH (e.g. ~/.local/bin)
-CAP_INSTALL="$HOME/.local/bin" apps/cap/build.sh debug
+CAP_INSTALL="$HOME/.local/bin" ./build.sh debug
 
 # 2. enable the PreToolUse hook in your agents (user-global)
 cap on          # enables Claude Code, Codex CLI, and AGY globally
@@ -1120,7 +1120,7 @@ RSS as the decision metrics:
 cargo bench -p cap --bench command_resources
 ```
 
-The latest baseline and interpretation live in `apps/cap/BENCHMARKS.md`.
+The latest baseline and interpretation live in `BENCHMARKS.md`.
 
 Narrowing it down:
 

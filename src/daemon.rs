@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/semantic/cap-src.md#schema
+// SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
 //! Daemon process: owns the Throttle, runs the sampler loop, serves
 //! UDS connections.
@@ -78,7 +78,7 @@ fn acquire_singleton_lock() -> Result<Option<SingletonLock>> {
     }
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub async fn run_foreground() -> Result<()> {
     let _singleton = match acquire_singleton_lock()? {
         Some(l) => l,
@@ -428,7 +428,7 @@ async fn write_resp<W: AsyncWriteExt + Unpin>(w: &mut W, r: &Response) -> Result
 }
 
 /// Is a daemon currently running for this user?
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn is_running() -> Result<bool> {
     let pid_path = paths::pid_path()?;
     if !pid_path.exists() {
@@ -443,7 +443,7 @@ pub fn is_running() -> Result<bool> {
     Ok(alive)
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub fn spawn_background() -> Result<i32> {
     use std::process::{Command, Stdio};
     paths::ensure_home()?;

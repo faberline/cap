@@ -10,28 +10,28 @@ use anyhow::Result;
 
 use crate::command_planner::{self, CommandPlan, ExternalImplementation, ExternalPlan, NativePlan};
 
-/// @spec apps/cap/tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
+/// @spec tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
 #[derive(Debug, Clone)]
 pub struct ResidentLightShellSession {
     cwd: PathBuf,
     env: Vec<(OsString, OsString)>,
 }
 
-/// @spec apps/cap/tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
+/// @spec tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
 #[derive(Debug, Clone)]
 pub enum ResidentLightShellPlan {
     Native(NativePlan),
     BashFallback(ExternalPlan),
 }
 
-/// @spec apps/cap/tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
+/// @spec tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
 #[derive(Debug, Clone)]
 pub enum ResidentLightShellRun {
     Native(ExitCode),
     BashFallback(ExternalPlan),
 }
 
-/// @spec apps/cap/tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
+/// @spec tech-design/logic/design-resident-light-shell-with-dynamic-bash-fallback.md#logic
 impl ResidentLightShellSession {
     pub fn capture() -> Self {
         Self {

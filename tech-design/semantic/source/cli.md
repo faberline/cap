@@ -1,6 +1,6 @@
 ---
 id: cap-source-cli
-summary: Source replay payload for apps/cap/src/cli.rs
+summary: Source replay payload for src/cli.rs
 fill_sections: [source, changes]
 capability_refs:
   - id: command-lease-throttling
@@ -59,7 +59,7 @@ capability_refs:
     rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
 ---
 
-# Source TD: apps/cap/src/cli.rs
+# Source TD: src/cli.rs
 
 ## Overview
 <!-- type: overview lang: markdown -->
@@ -68,14 +68,14 @@ capability_refs:
 
 | Symbol | Coverage |
 |---|---|
-| `AgentArg` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `Cli` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `Cmd` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `ConfigCmd` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `DaemonCmd` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `HookCmd` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `RunArgs` | public Rust symbol in `apps/cap/src/cli.rs` |
-| `run` | public Rust symbol in `apps/cap/src/cli.rs` |
+| `AgentArg` | public Rust symbol in `src/cli.rs` |
+| `Cli` | public Rust symbol in `src/cli.rs` |
+| `Cmd` | public Rust symbol in `src/cli.rs` |
+| `ConfigCmd` | public Rust symbol in `src/cli.rs` |
+| `DaemonCmd` | public Rust symbol in `src/cli.rs` |
+| `HookCmd` | public Rust symbol in `src/cli.rs` |
+| `RunArgs` | public Rust symbol in `src/cli.rs` |
+| `run` | public Rust symbol in `src/cli.rs` |
 
 ## Source
 <!-- type: source lang: rust -->
@@ -113,7 +113,7 @@ use crate::supervisor::SpawnSpec;
     about = "Live-throttling wrapper for heavy local commands",
     trailing_var_arg = true
 )]
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Cmd>,
@@ -124,7 +124,7 @@ pub struct Cli {
     pub passthrough: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum Cmd {
     /// Run a command under cap (explicit form).
@@ -181,7 +181,7 @@ pub enum Cmd {
     },
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Parser, Debug)]
 pub struct RunArgs {
     /// Human-readable label shown in `cap status`.
@@ -192,7 +192,7 @@ pub struct RunArgs {
     pub command: Vec<String>,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum DaemonCmd {
     /// Spawn a background daemon if none is running.
@@ -205,7 +205,7 @@ pub enum DaemonCmd {
     Status,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum ConfigCmd {
     /// Print the effective config.
@@ -214,7 +214,7 @@ pub enum ConfigCmd {
     Init,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Subcommand, Debug)]
 pub enum HookCmd {
     /// PreToolUse adapter for Bash (the runtime hook entrypoint that
@@ -231,7 +231,7 @@ pub enum HookCmd {
     },
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(ValueEnum, Clone, Debug)]
 pub enum AgentArg {
     /// Claude Code (~/.claude/settings.json)
@@ -240,7 +240,7 @@ pub enum AgentArg {
     Codex,
 }
 
-/// @spec apps/cap/tech-design/semantic/cap-src.md#schema
+/// @spec tech-design/semantic/cap-src.md#schema
 pub async fn run() -> Result<ExitCode> {
     init_tracing();
     let cli = Cli::parse();
@@ -541,12 +541,12 @@ fn exit_code_from(status: std::process::ExitStatus) -> ExitCode {
 ```yaml
 coverage_kind: source
 changes:
-  - path: "apps/cap/src/cli.rs"
+  - path: "src/cli.rs"
     action: modify
     section: source
     description: |
       Historical source replay payload retained as semantic context. Active
-      codegen ownership moved to apps/cap/tech-design/semantic/cap-src.md#rust_source.
+      codegen ownership moved to tech-design/semantic/cap-src.md#rust_source.
     impl_mode: hand-written
     replaces:
       - "<handwrite-tracker:projects-cap-src-cli-rs-source-replay-superseded>"

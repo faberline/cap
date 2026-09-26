@@ -1,4 +1,4 @@
-// SPEC-MANAGED: apps/cap/tech-design/logic/external-contracts.md#cap-config-logging-and-reap-policy
+// SPEC-MANAGED: tech-design/logic/external-contracts.md#cap-config-logging-and-reap-policy
 // CODEGEN-BEGIN
 // AW-EC-BEGIN
 // @ec cap-config-logging-and-reap-policy

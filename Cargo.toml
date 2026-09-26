@@ -1,3 +1,45 @@
+[workspace]
+resolver = "2"
+members = ["."]
+
+[workspace.package]
+authors = ["Chris Cheng <chris.cheng.c4@gmail.com>"]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/faberline/cap"
+
+[workspace.dependencies]
+tokio = { version = "1.40", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+anyhow = "1.0"
+thiserror = "2.0"
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.test]
+opt-level = 1
+
+[profile.release.package.cap]
+opt-level = "z"
+codegen-units = 1
+strip = true
+
+[profile.bench.package.cap]
+opt-level = "z"
+codegen-units = 1
+strip = true
+
 [package]
 name = "cap"
 version = "0.4.3"
@@ -36,7 +78,7 @@ cli-std = { git = "https://github.com/faberline/core", tag = "v0.4.14", default-
 
 [dev-dependencies]
 tempfile = "3"
-meter = { path = "../meter", default-features = false, features = ["embed"] }
+meter = { git = "https://github.com/faberline/meter", rev = "6689b38705978657eef0c3f8e12a937c416c5deb", default-features = false, features = ["embed"] }
 # `test-util` enables `tokio::time::pause`, `tokio::time::advance`, and
 # the `start_paused` attribute used by Slice 4 grace-period tests.
 tokio = { workspace = true, features = ["full", "test-util"] }
