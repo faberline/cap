@@ -10,23 +10,15 @@
 // @command cargo test -p cap --lib throttle -- --nocapture && cargo test -p cap sampler -- --nocapture
 // AW-EC-END
 
-// Contract: cap leases pause, resume, and kill under configured pressure thresholds
-// Contract: release outcomes preserve structured kill diagnostics
-// Contract: sampler output is stable enough for daemon pressure decisions
+// Contract: memory and CPU pressure never pause or kill cap commands
+// Contract: explicit timeout outcomes preserve structured diagnostics
+// Contract: sampling supplies telemetry and explicit idle-timeout checks only
 #[test]
-#[ignore = "AW EC gate: run via `aw health --verify-ec` or `cargo test -- --ignored`"]
+#[ignore = "Nested Cargo gate: run this contract with --ignored"]
 fn cap_command_lease_throttling() {
-    let command =
-        "cargo test -p cap --lib throttle -- --nocapture && cargo test -p cap sampler -- --nocapture";
+    let command = "cargo test -p cap --lib throttle -- --nocapture && cargo test -p cap sampler -- --nocapture";
     let id = "cap-command-lease-throttling";
-    let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    while !root.join(".aw").is_dir() {
-        assert!(
-            root.pop(),
-            "AW EC {id}: no .aw/ project root above {}",
-            env!("CARGO_MANIFEST_DIR")
-        );
-    }
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let output = std::process::Command::new("sh")
         .arg("-c")
         .arg(command)

@@ -10157,7 +10157,7 @@ fn parse_head_tail_args(args: &[String]) -> Option<HeadTailPlan> {
 }
 
 fn plan_cat(args: &[String], label: Option<String>, original: &str) -> Option<NativePlan> {
-    if args.is_empty() || args.iter().any(|arg| arg.starts_with('-')) {
+    if crate::tool_routing::probe("cat", args) != Some(crate::tool_routing::ToolId::Cat) {
         return None;
     }
     if args.iter().any(|path| !Path::new(path).is_file()) {
@@ -10565,6 +10565,11 @@ fn parse_wc_args(args: &[String], allow_stdin: bool) -> Option<WcLinesPlan> {
         return None;
     }
     let mode = WcCountMode::from_flag(&args[0])?;
+    if matches!(mode, WcCountMode::Lines | WcCountMode::Bytes)
+        && crate::tool_routing::probe("wc", args).is_none()
+    {
+        return None;
+    }
 
     let files = args[1..].to_vec();
     if !allow_stdin && files.is_empty() {
@@ -10713,10 +10718,47 @@ fn grep_workload_at_least(root: &Path, min_files: usize, min_bytes: u64) -> bool
 
 /// @spec tech-design/logic/cap-hook-auto-command-optimizer-whitelist.md#changes
 pub fn run_native(plan: &NativePlan) -> Result<ExitCode> {
-    let mut stdout = io::stdout().lock();
+    crate::tool_routing::trace(&crate::tool_routing::native(plan));
     let mut stderr = io::stderr().lock();
+    if cat_needs_checked_output(&plan.command) {
+        // Rust's standard stdout handle can discard EBADF. A command must
+        // report that write failure, so cat uses a checked descriptor writer.
+        let mut stdout = CatOutput;
+        let code = run_native_to(plan, &mut stdout, &mut stderr)?;
+        stdout.flush()?;
+        return Ok(exit_code_from_i32(code));
+    }
+    let mut stdout = io::stdout().lock();
     let code = run_native_to(plan, &mut stdout, &mut stderr)?;
+    stdout.flush()?;
     Ok(exit_code_from_i32(code))
+}
+
+fn cat_needs_checked_output(command: &NativeCommand) -> bool {
+    match command {
+        NativeCommand::Cat(_) => true,
+        NativeCommand::WithCwd(inner, _) => cat_needs_checked_output(inner),
+        _ => false,
+    }
+}
+
+struct CatOutput;
+
+impl Write for CatOutput {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        // Borrow stdout for this synchronous write without taking ownership.
+        let written =
+            unsafe { libc::write(libc::STDOUT_FILENO, bytes.as_ptr().cast(), bytes.len()) };
+        if written < 0 {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(written as usize)
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(()) // Writes go directly to the descriptor; no bytes are buffered.
+    }
 }
 
 /// RAII guard that captures the process's current working directory on
@@ -13234,6 +13276,10 @@ fn transform_bytes_to_vec(input: &[u8], mode: &TrMode) -> Vec<u8> {
 }
 
 fn run_cat(plan: &CatPlan, stdout: &mut dyn Write, stderr: &mut dyn Write) -> Result<i32> {
+    if plan.files.is_empty() {
+        io::copy(&mut io::stdin().lock(), stdout)?;
+        return Ok(0);
+    }
     let mut exit = 0;
     for file in &plan.files {
         match fs::File::open(file) {

@@ -2,10 +2,8 @@
 // CODEGEN-BEGIN
 //! Spawn a child command and report its PID before waiting.
 //!
-//! The only resource knob applied here is `nice` — memory pressure is handled
-//! by the daemon via live SIGSTOP / SIGCONT / SIGKILL on the child PID. The
-//! child is placed in its own process group so the throttler can signal the
-//! whole subtree (`cargo test → rustc → …`) via `kill(-pid, sig)`.
+//! Children keep the caller's process priority. Each child leads its own
+//! process group so terminal signals and explicit timeouts reach its subtree.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -16,6 +14,7 @@ use tokio::process::{Child, Command};
 
 /// @spec tech-design/semantic/cap-src.md#schema
 pub struct SpawnOpts {
+    /// Retired option. The child always keeps the caller's priority.
     pub nice: i32,
 }
 
@@ -61,7 +60,7 @@ impl RunningChild {
 
 /// Spawn from a [`SpawnSpec`], inheriting stdio, in its own process group.
 /// @spec tech-design/semantic/cap-src.md#schema
-pub fn spawn(spec: &SpawnSpec, opts: SpawnOpts) -> Result<RunningChild> {
+pub fn spawn(spec: &SpawnSpec, _opts: SpawnOpts) -> Result<RunningChild> {
     let mut cmd = Command::new(&spec.program);
     cmd.args(&spec.args)
         .stdin(Stdio::inherit())
@@ -74,18 +73,13 @@ pub fn spawn(spec: &SpawnSpec, opts: SpawnOpts) -> Result<RunningChild> {
         cmd.env(k, v);
     }
 
-    let nice = opts.nice;
     unsafe {
         cmd.pre_exec(move || {
-            // Make the child the leader of a new process group. PGID =
-            // child's PID, so the throttler can target the whole subtree by
-            // signalling `kill(-pid, sig)`. Without this, SIGSTOP/SIGKILL on
-            // the immediate child leaks: grandchildren keep eating RAM until
-            // reparented to init.
+            // Keep signal forwarding and explicit timeouts within this subtree.
             if libc::setpgid(0, 0) != 0 {
                 let _ = std::io::Error::last_os_error();
             }
-            apply_priority(nice)
+            Ok(())
         });
     }
 
@@ -96,14 +90,46 @@ pub fn spawn(spec: &SpawnSpec, opts: SpawnOpts) -> Result<RunningChild> {
     Ok(RunningChild { pid, child })
 }
 
-fn apply_priority(nice: i32) -> std::io::Result<()> {
-    if nice != 0 {
-        unsafe {
-            // setpriority can fail (EPERM if lowering nice as non-root);
-            // not fatal — child still runs.
-            let _ = libc::setpriority(libc::PRIO_PROCESS, 0, nice);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn legacy_nice_option_does_not_change_child_priority() {
+        let tmp = tempfile::tempdir().unwrap();
+        let output = tmp.path().join("priority");
+        let parent_priority = unsafe { libc::getpriority(libc::PRIO_PROCESS, 0) };
+        let mut spec = SpawnSpec::new(
+            std::env::current_exe().unwrap().display().to_string(),
+            vec![
+                "--exact".into(),
+                "supervisor::tests::child_priority_probe".into(),
+            ],
+        );
+        spec.env.insert(
+            "CAP_TEST_PRIORITY_FILE".into(),
+            output.display().to_string(),
+        );
+        let status = spawn(&spec, SpawnOpts { nice: 19 })
+            .unwrap()
+            .wait()
+            .await
+            .unwrap();
+        assert!(status.success());
+        let priority: i32 = std::fs::read_to_string(output)
+            .unwrap()
+            .trim()
+            .parse()
+            .unwrap();
+        assert_eq!(priority, parent_priority);
+    }
+
+    #[test]
+    fn child_priority_probe() {
+        if let Ok(output) = std::env::var("CAP_TEST_PRIORITY_FILE") {
+            let priority = unsafe { libc::getpriority(libc::PRIO_PROCESS, 0) };
+            std::fs::write(output, priority.to_string()).unwrap();
         }
     }
-    Ok(())
 }
 // CODEGEN-END

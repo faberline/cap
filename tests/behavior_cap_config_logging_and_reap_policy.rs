@@ -7,26 +7,18 @@
 // @contract config-logging-and-reap-policy
 // @category behavior
 // @required_for_production true
-// @command cargo test -p cap --lib config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap reap -- --nocapture
+// @command cargo test -p cap --lib config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap --test behavior_cap_unrestricted_shell
 // AW-EC-END
 
-// Contract: configuration defaults and compatibility rules stay stable
+// Contract: legacy resource-control keys parse without enforcing limits
 // Contract: JSONL event log persistence roundtrips run records
-// Contract: reap allowlist policy stays bounded and excludes active cap leases
+// Contract: cap never reaps other processes for memory pressure
 #[test]
-#[ignore = "AW EC gate: run via `aw health --verify-ec` or `cargo test -- --ignored`"]
+#[ignore = "Nested Cargo gate: run this contract with --ignored"]
 fn cap_config_logging_and_reap_policy() {
-    let command =
-        "cargo test -p cap --lib config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap reap -- --nocapture";
+    let command = "cargo test -p cap --lib config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap --test behavior_cap_unrestricted_shell";
     let id = "cap-config-logging-and-reap-policy";
-    let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    while !root.join(".aw").is_dir() {
-        assert!(
-            root.pop(),
-            "AW EC {id}: no .aw/ project root above {}",
-            env!("CARGO_MANIFEST_DIR")
-        );
-    }
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let output = std::process::Command::new("sh")
         .arg("-c")
         .arg(command)

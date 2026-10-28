@@ -10,21 +10,14 @@
 // @command cargo test -p cap --lib cli -- --nocapture
 // AW-EC-END
 
-// Contract: status and wait CLI surfaces use the daemon contract without blocking agent commands
+// Contract: status shows optional daemon leases and cap wait returns success immediately
 // Contract: command leases stay isolated by process group
 #[test]
-#[ignore = "AW EC gate: run via `aw health --verify-ec` or `cargo test -- --ignored`"]
+#[ignore = "Nested Cargo gate: run this contract with --ignored"]
 fn cap_cli_status_and_wait_surfaces() {
     let command = "cargo test -p cap --lib cli -- --nocapture";
     let id = "cap-cli-status-and-wait-surfaces";
-    let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    while !root.join(".aw").is_dir() {
-        assert!(
-            root.pop(),
-            "AW EC {id}: no .aw/ project root above {}",
-            env!("CARGO_MANIFEST_DIR")
-        );
-    }
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let output = std::process::Command::new("sh")
         .arg("-c")
         .arg(command)

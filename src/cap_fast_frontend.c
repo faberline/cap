@@ -5,6 +5,8 @@
 // candidates that are sensitive to Rust std process footprint, and delegates
 // everything else to the sibling cap-full binary.
 
+#include "tool_routing.h"
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -54,7 +56,7 @@ static const char *cap_base(const char *s) {
   return p ? p + 1 : s;
 }
 
-static int unsupported(void) { return 127; }
+static int unsupported(void) { return CAP_UNSUPPORTED; }
 
 static int is_large_text_regular_file(const char *path, off_t minimum_size) {
   struct stat st;
@@ -190,19 +192,19 @@ static int file_is_printable_ascii_lines(const char *path) {
 }
 
 static int exec_original_command(int argc, char **argv) {
-  if (argc < 2) return unsupported();
+  if (argc < 2) return 127;
   char *original_argv[argc];
   original_argv[0] = argv[1];
   for (int idx = 2; idx < argc; idx++) original_argv[idx - 1] = argv[idx];
   original_argv[argc - 1] = NULL;
   execvp(argv[1], original_argv);
-  return unsupported();
+  return 127;
 }
 
 static int exec_shell_command(const char *command) {
   char *shell_argv[] = {"/bin/bash", "-c", (char *)command, NULL};
   execv(shell_argv[0], shell_argv);
-  return unsupported();
+  return 127;
 }
 
 static int stdout_is_dev_null(void);
@@ -1093,19 +1095,20 @@ static int cap_cat(int argc, char **argv) {
   char buf[8192];
   int exit_code = 0;
   int skip_regular_reads = stdout_is_dev_null();
-  if (argc < 3) return unsupported();
-  for (int idx = 2; idx < argc; idx++) {
-    if (argv[idx][0] == '-') return unsupported();
-    int fd = open(argv[idx], O_RDONLY);
+  if (cap_tool_probe(argc - 1, argv + 1) != CAP_TOOL_CAT) return unsupported();
+  for (int idx = 2; idx < argc || (argc == 2 && idx == 2); idx++) {
+    int input = argc == 2;
+    const char *label = input ? "stdin" : argv[idx];
+    int fd = input ? STDIN_FILENO : open(label, O_RDONLY);
     if (fd < 0) {
-      write_err_path("cat", argv[idx], errno);
+      write_err_path("cat", label, errno);
       exit_code = 1;
       continue;
     }
-    if (skip_regular_reads) {
+    if (skip_regular_reads && !input) {
       struct stat st;
       if (fstat(fd, &st) == 0 && S_ISREG(st.st_mode)) {
-        close(fd);
+        if (!input) close(fd);
         continue;
       }
     }
@@ -1113,16 +1116,16 @@ static int cap_cat(int argc, char **argv) {
       ssize_t read_len = read(fd, buf, sizeof(buf));
       if (read_len == 0) break;
       if (read_len < 0) {
-        write_err_path("cat", argv[idx], errno);
+        write_err_path("cat", label, errno);
         exit_code = 1;
         break;
       }
       if (write(1, buf, (size_t)read_len) < 0) {
-        close(fd);
+        if (!input) close(fd);
         return 1;
       }
     }
-    close(fd);
+    if (!input) close(fd);
   }
   return exit_code;
 }
@@ -1639,7 +1642,7 @@ static int cap_rev(int argc, char **argv) {
 static int cap_paste_serial(const char *path, unsigned char delimiter) {
   struct stat st;
   if (stat(path, &st) != 0 || !S_ISREG(st.st_mode) || st.st_size < CAP_PASTE_MIN_BYTES) {
-    return 127;
+    return CAP_UNSUPPORTED;
   }
   int fd = open(path, O_RDONLY);
   if (fd < 0) { write_err_path("paste", path, errno); return 1; }
@@ -1693,7 +1696,7 @@ static int cap_paste(int argc, char **argv) {
     }
     if (delimiter >= 0x80) return unsupported();
     int rc = cap_paste_serial(path, delimiter);
-    return rc == 127 ? exec_original_command(argc, argv) : rc;
+    return rc == CAP_UNSUPPORTED ? exec_original_command(argc, argv) : rc;
   }
   const char *paths[3] = {NULL, NULL, NULL};
   int files = 0;
@@ -2539,7 +2542,7 @@ static int cap_cut_field_range(int argc, char **argv) {
   unsigned char delimiter = '\t';
   unsigned long long start = 0;
   unsigned long long end = 0;
-  if (!parse_cut_field_range_args(argc, argv, &path, &delimiter, &start, &end)) return 127;
+  if (!parse_cut_field_range_args(argc, argv, &path, &delimiter, &start, &end)) return CAP_UNSUPPORTED;
   struct stat st;
   if (stat(path, &st) != 0 || !S_ISREG(st.st_mode) ||
       st.st_size < CAP_CUT_FIELDS_MIN_BYTES) {
@@ -2568,7 +2571,7 @@ static int cap_cut_field_list(int argc, char **argv) {
   unsigned long long fields[32];
   size_t count = 0;
   if (!parse_cut_field_list_args(argc, argv, &path, &delimiter, fields, &count)) {
-    return 127;
+    return CAP_UNSUPPORTED;
   }
   struct stat st;
   if (stat(path, &st) != 0 || !S_ISREG(st.st_mode) ||
@@ -2685,9 +2688,9 @@ static int cap_cut(int argc, char **argv) {
     return rc;
   }
   int field_list = cap_cut_field_list(argc, argv);
-  if (field_list != 127) return field_list;
+  if (field_list != CAP_UNSUPPORTED) return field_list;
   int fields = cap_cut_field_range(argc, argv);
-  if (fields != 127) return fields;
+  if (fields != CAP_UNSUPPORTED) return fields;
   struct cut_plan plan;
   if (!parse_cut_words(argv, 2, argc, NULL, &plan)) return unsupported();
   return cut_file(&plan, "cut");
@@ -5058,7 +5061,7 @@ static int pipe_path_lookup_grep(char **words, int count) {
   }
   path_list_free(&lines);
   path_list_free(&filtered);
-  if (rc == 127) return unsupported();
+  if (rc == CAP_UNSUPPORTED) return unsupported();
   return count - pipe == 3 && !matched ? 1 : rc;
 }
 
@@ -5081,7 +5084,7 @@ static int pipe_path_lookup_producer(char **words, int count) {
   (void)missing_any;
   rc = emit_path_list_downstream(&lines, words, count, pipe + 1);
   path_list_free(&lines);
-  if (rc == 127) return unsupported();
+  if (rc == CAP_UNSUPPORTED) return unsupported();
   return rc;
 }
 
@@ -5262,7 +5265,7 @@ static int pipe_environment_grep(char **words, int count) {
   }
   path_list_free(&lines);
   path_list_free(&filtered);
-  if (rc == 127) return unsupported();
+  if (rc == CAP_UNSUPPORTED) return unsupported();
   return count - pipe == 3 && !matched ? 1 : rc;
 }
 
@@ -5382,7 +5385,7 @@ static int pipe_hostname_grep(char **words, int count) {
     rc = emit_path_list_downstream(&filtered, words, count, pipe + 4);
   }
   path_list_free(&filtered);
-  if (rc == 127) return unsupported();
+  if (rc == CAP_UNSUPPORTED) return unsupported();
   return count - pipe == 3 && !matched ? 1 : rc;
 }
 
@@ -6428,7 +6431,7 @@ static int pipe_cat_tail(char **words, int count) {
   }
   int rc = cat_tail_lines(fd, path, limit);
   close(fd);
-  return rc == 127 ? unsupported() : 0;
+  return rc == CAP_UNSUPPORTED ? unsupported() : 0;
 }
 
 static int pipe_cat_grep(char **words, int count) {
@@ -6438,7 +6441,7 @@ static int pipe_cat_grep(char **words, int count) {
     return unsupported();
   }
   int rc = cat_grep_file(words[1], words[4], strlen(words[4]), &matched);
-  if (rc == 127) return unsupported();
+  if (rc == CAP_UNSUPPORTED) return unsupported();
   return matched ? 0 : 1;
 }
 
@@ -7003,14 +7006,14 @@ static int cap_grep(int argc, char **argv) {
   if (exact_pattern && exact_pattern[0] && exact_pattern[0] != '-' && exact_path[0] != '-') {
     int rc = grep_fast_literal_file(exact_path, exact_pattern, strlen(exact_pattern),
                                     0, 0, 1, 0, 1, &matched);
-    if (rc == 127) return exec_original_command(argc, argv);
+    if (rc == CAP_UNSUPPORTED) return exec_original_command(argc, argv);
     return matched ? 0 : (rc ? rc : 1);
   }
   if (argc == 5 && !strcmp(argv[2], "-F") && argv[3][0] && argv[3][0] != '-' &&
       argv[4][0] != '-') {
     int rc = grep_fast_literal_file(argv[4], argv[3], strlen(argv[3]),
                                     0, 0, 0, 0, 1, &matched);
-    if (rc == 127) return exec_original_command(argc, argv);
+    if (rc == CAP_UNSUPPORTED) return exec_original_command(argc, argv);
     return matched ? 0 : (rc ? rc : 1);
   }
   const char *number_pattern = NULL;
@@ -7027,7 +7030,7 @@ static int cap_grep(int argc, char **argv) {
       number_path[0] != '-') {
     int rc = grep_fast_literal_file(number_path, number_pattern, strlen(number_pattern),
                                     1, 0, 0, 0, 1, &matched);
-    if (rc == 127) return exec_original_command(argc, argv);
+    if (rc == CAP_UNSUPPORTED) return exec_original_command(argc, argv);
     return matched ? 0 : (rc ? rc : 1);
   }
   const char *files_pattern = NULL;
@@ -7041,7 +7044,7 @@ static int cap_grep(int argc, char **argv) {
   if (files_pattern && files_pattern[0] && files_pattern[0] != '-' && files_path[0] != '-') {
     int rc = grep_fast_literal_file(files_path, files_pattern, strlen(files_pattern),
                                     0, 0, 0, 1, 0, &matched);
-    if (rc == 127) return exec_original_command(argc, argv);
+    if (rc == CAP_UNSUPPORTED) return exec_original_command(argc, argv);
     if (matched) { write_cstr(files_path); write_bytes("\n", 1); }
     return matched ? 0 : (rc ? rc : 1);
   }
@@ -7059,7 +7062,7 @@ static int cap_grep(int argc, char **argv) {
       invert_path[0] != '-') {
     int rc = grep_fast_literal_file(invert_path, invert_pattern, strlen(invert_pattern),
                                     0, 1, 0, 0, 1, &matched);
-    if (rc == 127) return exec_original_command(argc, argv);
+    if (rc == CAP_UNSUPPORTED) return exec_original_command(argc, argv);
     return matched ? 0 : (rc ? rc : 1);
   }
   const char *ignore_case_pattern = NULL;
@@ -7081,13 +7084,13 @@ static int cap_grep(int argc, char **argv) {
     }
     int rc = grep_plain_file(ignore_case_path, ignore_case_pattern,
                              strlen(ignore_case_pattern), 1, 0, 0, &matched);
-    if (rc == 127) return unsupported();
+    if (rc == CAP_UNSUPPORTED) return unsupported();
     return matched ? 0 : (rc ? rc : 1);
   }
   if (argc == 3 && argv[2][0] != '-' && is_plain_literal_pattern(argv[2])) {
     struct byte_line_list list = {0};
     int rc = grep_plain_collect_file(NULL, argv[2], strlen(argv[2]), &list);
-    if (rc == 127) return unsupported();
+    if (rc == CAP_UNSUPPORTED) return unsupported();
     for (size_t idx = 0; idx < list.len; idx++) {
       write_bytes(list.items[idx].data, list.items[idx].len);
     }
@@ -7098,7 +7101,7 @@ static int cap_grep(int argc, char **argv) {
   if (argc == 4 && argv[2][0] != '-' && argv[3][0] != '-' &&
       is_plain_literal_pattern(argv[2])) {
     int rc = grep_plain_file(argv[3], argv[2], strlen(argv[2]), 0, 0, 0, &matched);
-    if (rc == 127) return unsupported();
+    if (rc == CAP_UNSUPPORTED) return unsupported();
     return matched ? 0 : (rc ? rc : 1);
   }
   if (argc != 5 || strcmp(argv[2], "-R") != 0) return unsupported();
@@ -8339,7 +8342,7 @@ static int pipe_printf_grep_producer(char **words, int count) {
 static int pipe_printf_grep_sort_uniq_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0 || count <= pipe + 8 || strcmp(words[pipe + 1], "grep") ||
       !is_plain_literal_pattern(words[pipe + 2]) || strcmp(words[pipe + 3], "|") ||
       strcmp(words[pipe + 4], "sort") || strcmp(words[pipe + 5], "|") ||
@@ -8359,7 +8362,7 @@ static int pipe_printf_grep_sort_uniq_producer(char **words, int count) {
 static int pipe_printf_sort_uniq_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0 || count <= pipe + 5 || strcmp(words[pipe + 1], "sort") ||
       strcmp(words[pipe + 2], "|") || strcmp(words[pipe + 3], "uniq") ||
       strcmp(words[pipe + 4], "|")) {
@@ -9528,7 +9531,7 @@ static int run_side_effect_empty_pipe_left(char **words, int pipe, int kind,
     }
     return rc;
   }
-  return 127;
+  return CAP_UNSUPPORTED;
 }
 
 static int pipe_side_effect_empty_producer(char **words, int count) {
@@ -9665,7 +9668,7 @@ static int collect_wc_pipe_lines(char **words, int pipe,
 static int pipe_wc_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0 || pipe + 1 >= count) return unsupported();
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
@@ -9783,7 +9786,7 @@ static int collect_du_sk_pipe_lines(char **words, int pipe,
 static int pipe_du_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0 || pipe + 1 >= count) return unsupported();
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
@@ -10023,7 +10026,7 @@ static int collect_single_line_grep_pipe_lines(char **words, int pipe,
 static int pipe_single_line_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0) return unsupported();
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
@@ -10064,7 +10067,7 @@ static int pipe_single_line_producer(char **words, int count) {
 static int pipe_head_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0) return unsupported();
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
@@ -10075,7 +10078,7 @@ static int pipe_head_producer(char **words, int count) {
       return unsupported();
     }
     rc = emit_head_stream_mode(words, pipe, pipe + 4, count, words[pipe + 2]);
-    if (rc != 127) return rc;
+    if (rc != CAP_UNSUPPORTED) return rc;
     if (!collect_head_grep_lines(words, pipe, &list)) {
       byte_line_list_free(&list);
       return unsupported();
@@ -10083,7 +10086,7 @@ static int pipe_head_producer(char **words, int count) {
     rc = emit_head_line_list_mode(words, pipe + 4, count, &list, 0);
   } else {
     rc = emit_head_stream_mode(words, pipe, pipe + 1, count, NULL);
-    if (rc != 127) return rc;
+    if (rc != CAP_UNSUPPORTED) return rc;
     if (!collect_head_lines(words, pipe, &list)) {
       byte_line_list_free(&list);
       return unsupported();
@@ -10422,7 +10425,7 @@ static int collect_tail_grep_lines(char **words, int pipe, struct byte_line_list
 static int pipe_tail_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0) return unsupported();
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
@@ -10433,7 +10436,7 @@ static int pipe_tail_producer(char **words, int count) {
       return unsupported();
     }
     rc = emit_tail_stream_mode(words, pipe, pipe + 4, count, words[pipe + 2]);
-    if (rc != 127) return rc;
+    if (rc != CAP_UNSUPPORTED) return rc;
     if (!collect_tail_grep_lines(words, pipe, &list)) {
       byte_line_list_free(&list);
       return unsupported();
@@ -10441,7 +10444,7 @@ static int pipe_tail_producer(char **words, int count) {
     rc = emit_head_line_list_mode(words, pipe + 4, count, &list, 0);
   } else {
     rc = emit_tail_stream_mode(words, pipe, pipe + 1, count, NULL);
-    if (rc != 127) return rc;
+    if (rc != CAP_UNSUPPORTED) return rc;
     if (!collect_tail_lines(words, pipe, &list)) {
       byte_line_list_free(&list);
       return unsupported();
@@ -10553,7 +10556,7 @@ static int collect_sed_grep_pipe_lines(char **words, int pipe,
 static int pipe_sed_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0) return unsupported();
   if (pipe == 2 && count >= 6 && !strcmp(words[0], "cat") &&
       !strcmp(words[2], "|") && !strcmp(words[3], "sed") &&
@@ -10706,14 +10709,14 @@ static int emit_cut_wc_lines_if_supported(char **words, int count, int cut_start
                                           const char *err_cmd) {
   if (count != pipe + 3 || strcmp(words[pipe + 1], "wc") ||
       strcmp(words[pipe + 2], "-l")) {
-    return 127;
+    return CAP_UNSUPPORTED;
   }
   struct cut_plan plan;
-  if (!parse_cut_words(words, cut_start, pipe, forced_file, &plan)) return 127;
+  if (!parse_cut_words(words, cut_start, pipe, forced_file, &plan)) return CAP_UNSUPPORTED;
   unsigned long long total = 0;
   int counted = count_cut_plan_records(&plan, err_cmd, &total);
   if (counted < 0) return 1;
-  if (counted == 0) return 127;
+  if (counted == 0) return CAP_UNSUPPORTED;
   write_padded_u64(total);
   write_bytes("\n", 1);
   return 0;
@@ -10777,7 +10780,7 @@ static int collect_grep_file_cut_pipe_lines(char **words, int cut_end,
   int collected = collect_grep_file_pipe_lines(words, 3, &source);
   if (collected != 0) {
     byte_line_list_free(&source);
-    return collected == 127 ? 0 : -1;
+    return collected == CAP_UNSUPPORTED ? 0 : -1;
   }
   for (size_t idx = 0; idx < source.len; idx++) {
     struct byte_line_item *item = &source.items[idx];
@@ -10805,7 +10808,7 @@ static int pipe_grep_file_cut_producer(char **words, int count) {
   }
   int cut_end = pipe < 0 ? count : pipe;
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe >= 0 && count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11041,7 +11044,7 @@ static int collect_grep_file_awk_pipe_lines(char **words, int awk_end,
   int collected = collect_grep_file_pipe_lines(words, 3, &source);
   if (collected != 0) {
     byte_line_list_free(&source);
-    return collected == 127 ? 0 : -1;
+    return collected == CAP_UNSUPPORTED ? 0 : -1;
   }
   size_t filter_len = awk_filter ? strlen(awk_filter) : 0;
   for (size_t idx = 0; idx < source.len; idx++) {
@@ -11066,7 +11069,7 @@ static int pipe_grep_file_awk_producer(char **words, int count) {
   int pipe = count > 6 && !strcmp(words[6], "|") ? 6 : -1;
   if (pipe < 0 && count != 6) return unsupported();
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe >= 0 && count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11384,7 +11387,7 @@ static int collect_sort_pipe_lines(char **words, int pipe,
   size_t line_len = 0;
   if (!file) return 0;
   int loaded = load_sorted_file_for_pipe(file, &data, &lines, &line_len);
-  if (loaded == 127) return 0;
+  if (loaded == CAP_UNSUPPORTED) return 0;
   if (loaded != 0) return -1;
   for (size_t idx = 0; idx < line_len; idx++) {
     if (!byte_line_list_push_span(list, data, lines[idx])) {
@@ -11433,11 +11436,11 @@ static int pipe_cat_xargs_wc_producer(char **words, int count) {
   int rc = collect_cat_pipe_lines(words[1], &list);
   if (rc != 0) {
     byte_line_list_free(&list);
-    return rc == 127 ? unsupported() : rc;
+    return rc == CAP_UNSUPPORTED ? unsupported() : rc;
   }
   rc = emit_xargs_wc_output_line_list_mode(words, 3, count, &list, 0);
   byte_line_list_free(&list);
-  return rc == 127 ? unsupported() : rc;
+  return rc == CAP_UNSUPPORTED ? unsupported() : rc;
 }
 
 static int pipe_sort_xargs_wc_producer(char **words, int count) {
@@ -11455,7 +11458,7 @@ static int pipe_sort_xargs_wc_producer(char **words, int count) {
   }
   rc = emit_xargs_wc_output_line_list_mode(words, 3, count, &list, 0);
   byte_line_list_free(&list);
-  return rc == 127 ? unsupported() : rc;
+  return rc == CAP_UNSUPPORTED ? unsupported() : rc;
 }
 
 static int pipe_cat_sort_xargs_wc_producer(char **words, int count) {
@@ -11474,7 +11477,7 @@ static int pipe_cat_sort_xargs_wc_producer(char **words, int count) {
   }
   rc = emit_xargs_wc_output_line_list_mode(words, 5, count, &list, 0);
   byte_line_list_free(&list);
-  return rc == 127 ? unsupported() : rc;
+  return rc == CAP_UNSUPPORTED ? unsupported() : rc;
 }
 
 static int collect_sort_uniq_pipe_lines(char **words, int pipe,
@@ -11487,7 +11490,7 @@ static int collect_sort_uniq_pipe_lines(char **words, int pipe,
   struct line_span previous = {0, 0};
   if (!file) return 0;
   int loaded = load_sorted_file_for_pipe(file, &data, &lines, &line_len);
-  if (loaded == 127) return 0;
+  if (loaded == CAP_UNSUPPORTED) return 0;
   if (loaded != 0) return -1;
   for (size_t idx = 0; idx < line_len; idx++) {
     if (!have_previous || !line_spans_equal_without_newline(data, previous, lines[idx])) {
@@ -11560,10 +11563,10 @@ static int collect_sort_grep_pipe_lines(char **words, int pipe,
 static int pipe_cut_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0) return unsupported();
   rc = emit_cut_wc_lines_if_supported(words, count, 1, pipe, NULL, "cut");
-  if (rc != 127) return rc;
+  if (rc != CAP_UNSUPPORTED) return rc;
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11615,9 +11618,9 @@ static int pipe_cat_cut_producer(char **words, int count) {
   if (pipe < 0 || pipe + 1 >= count) return unsupported();
 
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   rc = emit_cut_wc_lines_if_supported(words, count, 4, pipe, words[1], "cat");
-  if (rc != 127) return rc;
+  if (rc != CAP_UNSUPPORTED) return rc;
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11669,7 +11672,7 @@ static int pipe_cat_tr_producer(char **words, int count) {
   if (pipe < 0 || pipe + 1 >= count) return unsupported();
 
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11713,7 +11716,7 @@ static int pipe_cat_uniq_producer(char **words, int count) {
   }
   int pipe = 4;
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11756,7 +11759,7 @@ static int pipe_uniq_producer(char **words, int count) {
   }
   int pipe = 2;
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -11808,7 +11811,7 @@ static int pipe_sort_uniq_producer(char **words, int count) {
   if (pipe + 1 >= count) return unsupported();
 
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count >= pipe + 3 && !strcmp(words[pipe + 1], "grep") &&
       is_plain_literal_pattern(words[pipe + 2])) {
     if (count != pipe + 3 && strcmp(words[pipe + 3], "|")) return unsupported();
@@ -12061,7 +12064,7 @@ static int pipe_seq_grep_sort_uniq_wc(char **words, int count) {
 static int pipe_seq_grep_sort_uniq_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0 || count <= pipe + 8 || strcmp(words[pipe + 3], "|") ||
       strcmp(words[pipe + 4], "sort") || strcmp(words[pipe + 5], "|") ||
       strcmp(words[pipe + 6], "uniq") || strcmp(words[pipe + 7], "|")) {
@@ -12236,7 +12239,7 @@ static int pipe_seq_sort_uniq_wc(char **words, int count) {
 static int pipe_seq_sort_uniq_producer(char **words, int count) {
   int pipe = first_pipe_index(words, count);
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (pipe < 0 || count <= pipe + 5 || strcmp(words[pipe + 1], "sort") ||
       strcmp(words[pipe + 2], "|") || strcmp(words[pipe + 3], "uniq") ||
       strcmp(words[pipe + 4], "|")) {
@@ -12683,7 +12686,7 @@ static int collect_ls_sort_uniq_pipe_lines(char **words, int pipe,
                                            struct byte_line_list *list) {
   struct path_list names = {0};
   int rc = load_ls_pipe_names(words, pipe, &names);
-  if (rc == 127) return 0;
+  if (rc == CAP_UNSUPPORTED) return 0;
   if (rc != 0) {
     path_list_free(&names);
     return -1;
@@ -12734,7 +12737,7 @@ static int pipe_ls_sort_uniq_producer(char **words, int count) {
   }
 
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count >= pipe + 7 && !strcmp(words[pipe + 5], "grep") &&
       is_plain_literal_pattern(words[pipe + 6])) {
     if (count != pipe + 7 && strcmp(words[pipe + 7], "|")) return unsupported();
@@ -12855,7 +12858,7 @@ static int collect_ls_grep_pipe_lines(char **words, int pipe,
                                       struct byte_line_list *lines) {
   struct path_list names = {0};
   int rc = load_ls_pipe_names(words, pipe, &names);
-  if (rc == 127) return 0;
+  if (rc == CAP_UNSUPPORTED) return 0;
   if (rc != 0) {
     path_list_free(&names);
     return -1;
@@ -13215,7 +13218,7 @@ static int pipe_awk_sort_uniq_producer(char **words, int count) {
 static int pipe_awk_grep_producer(char **words, int count) {
   struct byte_line_list source = {0};
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count < 6 || strcmp(words[4], "grep") ||
       !is_plain_literal_pattern(words[5])) {
     return unsupported();
@@ -13399,33 +13402,33 @@ static int pipe_awk_xargs_wc(char **words, int count) {
 
 static int dispatch_pipe_awk_handlers(char **words, int count) {
   int code = pipe_awk_grep_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_awk_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   return pipe_awk_xargs_wc(words, count);
 }
 
@@ -13755,7 +13758,7 @@ static int pipe_find_xargs_wc_producer(char **words, int count) {
   }
   rc = emit_head_line_list_mode(words, downstream_start, count, &lines, 0);
   byte_line_list_free(&lines);
-  return rc == 127 ? unsupported() : rc;
+  return rc == CAP_UNSUPPORTED ? unsupported() : rc;
 }
 
 static int pipe_find_grep_xargs_echo(char **words, int count) {
@@ -14150,7 +14153,7 @@ static int pipe_find_sort_uniq_producer(char **words, int count) {
   }
 
   struct byte_line_list list = {0};
-  int rc = 127;
+  int rc = CAP_UNSUPPORTED;
   if (count >= prefix.pipe + 7 && !strcmp(words[prefix.pipe + 5], "grep") &&
       is_plain_literal_pattern(words[prefix.pipe + 6])) {
     if (count != prefix.pipe + 7 && strcmp(words[prefix.pipe + 7], "|")) {
@@ -14333,21 +14336,21 @@ static int pipe_stdin_grep(char **words, int count) {
   for (int idx = 3; idx < count; idx++) rewritten[rewritten_count++] = words[idx];
 
   int code = pipe_grep_file_cut_producer(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_awk_producer(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_uniq_wc(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_uniq_producer(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_uniq(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_wc(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_head(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_tail(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_xargs_echo(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort_xargs_wc(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_wc(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_head(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_tail(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_xargs_echo(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_xargs_wc(rewritten, rewritten_count);
-  if (code == 127) code = pipe_grep_file_sort(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_awk_producer(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_uniq_wc(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_uniq_producer(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_uniq(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_wc(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_head(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_tail(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_xargs_echo(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort_xargs_wc(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_wc(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_head(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_tail(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_xargs_echo(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_xargs_wc(rewritten, rewritten_count);
+  if (code == CAP_UNSUPPORTED) code = pipe_grep_file_sort(rewritten, rewritten_count);
 
   free(rewritten);
   return code;
@@ -14355,395 +14358,395 @@ static int pipe_stdin_grep(char **words, int count) {
 
 static int dispatch_pipe_words(char **words, int count) {
   int code = pipe_echo_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_echo_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_echo_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_echo_tr(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_echo_awk_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_echo_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_echo_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_xargs_echo_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_empty_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_side_effect_empty_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_predicate_empty_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_wc_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_du_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_head_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_tail_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_head_tail_producer(words, count, "head", 1);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_head_tail_producer(words, count, "tail", 0);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sed_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cut_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_literal_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_awk_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_grep_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_grep_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_tr(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_printf_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_seq_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_yes_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_path_lookup_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_path_lookup_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_path_lookup_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_path_lookup_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_path_lookup_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_environment_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_environment_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_environment_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_environment_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_environment_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_hostname_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_hostname_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_hostname_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_hostname_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_hostname_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_single_line_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_grep_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_grep_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_grep_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_grep_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_ls_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_grep_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_xargs_wc_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_xargs_wc_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_grep_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_cut_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_cut(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_tr_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_tr(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_xargs_wc_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_stdin_grep(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_cut_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_awk_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_file_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_sort_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_grep_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_cat_awk(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_stdin_awk(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = dispatch_pipe_awk_handlers(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_xargs_wc_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_grep_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_grep_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_grep_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_grep_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_grep_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_xargs_echo(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_xargs_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_uniq_producer(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_uniq(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_uniq_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_sort_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_wc(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_head(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   code = pipe_find_tail(words, count);
-  if (code != 127) return code;
+  if (code != CAP_UNSUPPORTED) return code;
   return pipe_find_sort_tail(words, count);
 }
 
@@ -15097,9 +15100,72 @@ static int exec_full(int argc, char **argv) {
   return 127;
 }
 
+
+/* Probe the complete pilot before an executor can read stdin or emit data. */
+static int fast_pilot(int argc, char **argv) {
+  int start = 1;
+  int trace = argc > start && cap_route_eq(argv[start], "--trace-routing");
+  if (trace) start++;
+  int explain = argc > start + 1 && cap_route_eq(argv[start], "explain") &&
+                cap_route_eq(argv[start + 1], "--json");
+  if (explain) {
+    start += 2;
+    if (argc > start && cap_route_eq(argv[start], "--")) start++;
+  }
+  if (argc <= start) return CAP_UNSUPPORTED;
+  char **allocated = NULL;
+  char **words = argv + start;
+  int count = argc - start;
+  int string = 0;
+  if (!explain && cap_route_eq(words[0], "run")) {
+    if (count == 2) { string = 1; words++; count--; }
+    else if (count > 2 && cap_route_eq(words[1], "--")) { words += 2; count -= 2; }
+    else return CAP_UNSUPPORTED;
+  } else if (explain && count == 1) string = 1;
+  if (string) {
+    const char *command = words[0];
+    if (has_shell_control_syntax(command) ||
+        !split_simple_shell_words(command, &allocated, &count)) return CAP_UNSUPPORTED;
+    words = allocated;
+    for (int idx = 0; idx < count; idx++) {
+      if (cap_route_eq(words[idx], "|")) { free_words(allocated, count); return CAP_UNSUPPORTED; }
+    }
+  }
+  enum cap_tool_id tool = cap_tool_probe(count, words);
+  if (tool == CAP_TOOL_NONE) { free_words(allocated, allocated ? count : 0); return CAP_UNSUPPORTED; }
+  if (tool != CAP_TOOL_CAT) {
+    for (int idx = 2; idx < count; idx++) {
+      struct stat st;
+      if (stat(words[idx], &st) == 0 && !S_ISREG(st.st_mode)) {
+        free_words(allocated, allocated ? count : 0); return CAP_UNSUPPORTED;
+      }
+    }
+  }
+  if (trace || explain) {
+    const char *record = cap_tool_record(tool, 0);
+    if (explain) write_bytes(record, strlen(record));
+    else (void)write(2, record, strlen(record));
+  }
+  int code = 0;
+  if (!explain) {
+    char *execution[count + 2];
+    execution[0] = argv[0];
+    for (int idx = 0; idx < count; idx++) execution[idx + 1] = words[idx];
+    execution[count + 1] = NULL;
+    code = tool == CAP_TOOL_CAT ? cap_cat(count + 1, execution) : cap_wc(count + 1, execution);
+  }
+  if (allocated) free_words(allocated, count);
+  return code;
+}
 int main(int argc, char **argv) {
-  int code = dispatch_frontend(argc, argv);
-  if (code != 127) {
+  int code = fast_pilot(argc, argv);
+  if (code != CAP_UNSUPPORTED) { flush_output(); return code; }
+  if (argc > 1 && (cap_route_eq(argv[1], "--trace-routing") ||
+      (argc > 2 && cap_route_eq(argv[1], "explain") && cap_route_eq(argv[2], "--json")))) {
+    return exec_full(argc, argv);
+  }
+  code = dispatch_frontend(argc, argv);
+  if (code != CAP_UNSUPPORTED) {
     flush_output();
     return code;
   }

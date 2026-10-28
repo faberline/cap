@@ -20,7 +20,7 @@ capability_refs:
     gap: lease-admission-and-process-supervision
     claim: lease-admission-and-process-supervision
     coverage: full
-    rationale: "The EC gate verifies lease admission, pressure response, and sampler behavior."
+    rationale: "The EC gate verifies direct shell execution, explicit timeouts, and removal of resource limits."
   - id: daemon-lifecycle-and-status
     role: primary
     gap: daemon-process-lifecycle
@@ -32,10 +32,38 @@ capability_refs:
     gap: configuration-defaults-and-compatibility
     claim: configuration-defaults-and-compatibility
     coverage: full
-    rationale: "The EC gate verifies configuration defaults, event logging, and reap policy."
+    rationale: "The EC gate verifies legacy config compatibility, event logging, and disabled process reaping."
 ---
 
 # External Contracts: cap
+
+## Current execution policy
+
+Cap provides efficient shell tools without memory or CPU resource limits.
+Direct commands bypass the daemon and keep the caller's priority.
+Only explicit per-invocation timeout flags limit direct external commands.
+`cap wait` returns success immediately. Cap never reaps other processes.
+Legacy EC IDs remain stable for compatibility with existing gate references.
+The IDs do not retain the retired resource-governor behavior.
+These contracts replace pressure and reap requirements in older source snapshots.
+
+## cap-unrestricted-shell
+<!-- type: e2e-test lang: yaml -->
+
+```yaml
+e2e_tests:
+  - id: cap-unrestricted-shell
+    capability_id: command-lease-throttling
+    claim_id: direct-shell-execution-without-resource-limits
+    contract_id: unrestricted-shell
+    category: behavior
+    command: "cargo test -p cap --test behavior_cap_unrestricted_shell"
+    assertions:
+      - "normal commands run without starting or contacting the daemon"
+      - "legacy memory, CPU, priority and reap settings cannot restrict commands"
+      - "external commands preserve output, exit status and caller priority"
+      - "explicit external-command timeouts remain available"
+```
 
 ## Standard Agent CLI Operations EC
 <!-- type: e2e-test lang: yaml -->
@@ -91,7 +119,7 @@ e2e_tests:
       - "recursive cap invocations and empty commands remain fail-open"
 ```
 
-## Command Lease Throttling EC
+## Shell Execution EC
 <!-- type: e2e-test lang: yaml -->
 
 ```yaml
@@ -103,12 +131,12 @@ e2e_tests:
     category: behavior
     command: "cargo test -p cap throttle -- --nocapture && cargo test -p cap sampler -- --nocapture"
     assertions:
-      - "cap leases pause, resume, and kill under configured pressure thresholds"
-      - "release outcomes preserve structured kill diagnostics"
-      - "sampler output is stable enough for daemon pressure decisions"
+      - "memory and CPU pressure never pause or kill cap commands"
+      - "explicit timeout outcomes preserve structured diagnostics"
+      - "sampling supplies telemetry and explicit idle-timeout checks only"
 ```
 
-## Memory And CPU Pressure Sampling EC
+## Telemetry Sampling EC
 <!-- type: e2e-test lang: yaml -->
 
 ```yaml
@@ -120,8 +148,8 @@ e2e_tests:
     category: behavior
     command: "cargo test -p cap sampler -- --nocapture"
     assertions:
-      - "sampler output is stable enough for daemon pressure decisions"
-      - "memory and CPU pressure readings remain available to lease admission"
+      - "sampling supplies telemetry and explicit idle-timeout checks only"
+      - "command admission never waits for memory or CPU capacity"
 ```
 
 ## Daemon Lifecycle And Status EC
@@ -137,7 +165,7 @@ e2e_tests:
     command: "cargo test -p cap daemon -- --nocapture && cargo test -p cap cli -- --nocapture"
     assertions:
       - "daemon lifecycle and liveness surfaces remain callable"
-      - "status and wait CLI surfaces use the daemon contract without blocking agent commands"
+      - "status shows optional daemon leases and cap wait returns success immediately"
       - "command leases stay isolated by process group"
 ```
 
@@ -153,11 +181,11 @@ e2e_tests:
     category: behavior
     command: "cargo test -p cap cli -- --nocapture"
     assertions:
-      - "status and wait CLI surfaces use the daemon contract without blocking agent commands"
+      - "status shows optional daemon leases and cap wait returns success immediately"
       - "command leases stay isolated by process group"
 ```
 
-## Config Logging And Reap Policy EC
+## Config And Logging EC
 <!-- type: e2e-test lang: yaml -->
 
 ```yaml
@@ -167,11 +195,11 @@ e2e_tests:
     claim_id: configuration-defaults-and-compatibility
     contract_id: config-logging-and-reap-policy
     category: behavior
-    command: "cargo test -p cap config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap reap -- --nocapture"
+    command: "cargo test -p cap config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap --test behavior_cap_unrestricted_shell"
     assertions:
-      - "configuration defaults and compatibility rules stay stable"
+      - "legacy resource-control keys parse without enforcing limits"
       - "JSONL event log persistence roundtrips run records"
-      - "reap allowlist policy stays bounded and excludes active cap leases"
+      - "cap never reaps other processes for memory pressure"
 ```
 
 ## Run Log Persistence EC
@@ -190,7 +218,7 @@ e2e_tests:
       - "run evidence remains durable enough for agent diagnosis"
 ```
 
-## Reap Allowlist Policy EC
+## Retired Reap Policy EC
 <!-- type: e2e-test lang: yaml -->
 
 ```yaml
@@ -200,8 +228,8 @@ e2e_tests:
     claim_id: reap-allowlist-policy
     contract_id: reap-allowlist-policy
     category: behavior
-    command: "cargo test -p cap reap -- --nocapture"
+    command: "cargo test -p cap --test behavior_cap_unrestricted_shell"
     assertions:
-      - "reap allowlist policy stays bounded"
-      - "active cap leases are excluded from reap actions"
+      - "cap never reaps other processes for memory pressure"
+      - "legacy reap settings cannot enable process reaping"
 ```

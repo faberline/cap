@@ -8,7 +8,7 @@ capability_refs:
     gap: lease-admission-and-process-supervision
     claim: lease-admission-and-process-supervision
     coverage: full
-    rationale: "The cap source group implements command wrapping, daemon leases, throttling, and structured run outcomes."
+    rationale: "The cap source group implements efficient shell commands, direct external execution, explicit timeouts, and structured run outcomes."
   - id: agent-hook-installation
     role: primary
     gap: claude-and-codex-hook-installation
@@ -26,7 +26,7 @@ capability_refs:
     gap: memory-and-cpu-pressure-sampling
     claim: memory-and-cpu-pressure-sampling
     coverage: full
-    rationale: "The sampler and throttle modules in this source group implement memory and CPU pressure sampling."
+    rationale: "Sampling supplies telemetry and explicit idle-timeout checks without resource-governor decisions."
   - id: daemon-lifecycle-and-status
     role: primary
     gap: daemon-process-lifecycle
@@ -44,7 +44,7 @@ capability_refs:
     gap: configuration-defaults-and-compatibility
     claim: configuration-defaults-and-compatibility
     coverage: full
-    rationale: "Configuration, JSONL logging, and reap policy modules live in this source group."
+    rationale: "Configuration compatibility and JSONL logging live in this source group."
   - id: config-logging-and-reap-policy
     role: primary
     gap: run-log-persistence
@@ -56,10 +56,23 @@ capability_refs:
     gap: reap-allowlist-policy
     claim: reap-allowlist-policy
     coverage: full
-    rationale: "The reap module in this source group implements bounded allowlist-based process reaping."
+    rationale: "Resource-pressure process reaping is retired; legacy settings cannot enable it."
 ---
 
 # Semantic TD: cap/src
+
+## Current execution policy
+
+The current contract is [External Contracts](../logic/external-contracts.md#current-execution-policy).
+Cap no longer delays, pauses, or kills commands for memory or CPU pressure.
+It preserves caller priority and never reaps other processes.
+Direct CLI commands bypass the daemon. Explicit timeout flags remain available
+for external commands.
+
+The embedded source replay payloads below predate this policy change.
+They are retained as historical generator inputs, not current resource-governor
+requirements. Read the implementation files for current behavior.
+Refresh the generator inputs before using them to regenerate source.
 
 ## Schema
 <!-- type: schema lang: yaml -->

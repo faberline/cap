@@ -8,9 +8,12 @@
 // cap-fast. Other platforms use a normal C entrypoint with the same command
 // shape.
 
+#include "tool_routing.h"
+
 #if defined(__APPLE__) && defined(__aarch64__)
 
 #include <mach-o/dyld.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
 #include <sys/stat.h>
@@ -105,8 +108,15 @@ static void write_fd_all(long fd, const char *bytes, size_t len) {
   }
 }
 
-static void write_all(const char *bytes, size_t len) {
-  write_fd_all(1, bytes, len);
+static int write_all(const char *bytes, size_t len) {
+  while (len > 0) {
+    long written = syscall3(4, 1, (long)bytes, (long)len);
+    if (written == -EINTR) continue;
+    if (written <= 0) return written < 0 ? (int)-written : EIO;
+    bytes += (size_t)written;
+    len -= (size_t)written;
+  }
+  return 0;
 }
 
 static const char *err_text(long err) {
@@ -142,19 +152,20 @@ static int cap_cat(long argc, char **argv) {
   char buf[8192];
   int exit_code = 0;
   int skip_regular_reads = stdout_is_dev_null();
-  if (argc < 3) return 127;
-  for (long idx = 2; idx < argc; idx++) {
-    if (argv[idx][0] == '-') return 127;
-    long fd = syscall3(5, (long)argv[idx], O_RDONLY, 0);
+  if (cap_tool_probe((int)argc - 1, argv + 1) != CAP_TOOL_CAT) return CAP_UNSUPPORTED;
+  for (long idx = 2; idx < argc || (argc == 2 && idx == 2); idx++) {
+    int input = argc == 2;
+    const char *label = input ? "stdin" : argv[idx];
+    long fd = input ? 0 : syscall3(5, (long)label, O_RDONLY, 0);
     if (fd < 0) {
-      write_err_path("cat", argv[idx], -fd);
+      write_err_path("cat", label, -fd);
       exit_code = 1;
       continue;
     }
-    if (skip_regular_reads) {
+    if (skip_regular_reads && !input) {
       struct stat st;
       if (syscall2(339, fd, (long)&st) == 0 && S_ISREG(st.st_mode)) {
-        syscall1(6, fd);
+        if (!input) syscall1(6, fd);
         continue;
       }
     }
@@ -162,13 +173,18 @@ static int cap_cat(long argc, char **argv) {
       long read_len = syscall3(3, fd, (long)buf, sizeof(buf));
       if (read_len == 0) break;
       if (read_len < 0) {
-        write_err_path("cat", argv[idx], -read_len);
+        write_err_path("cat", label, -read_len);
         exit_code = 1;
         break;
       }
-      write_all(buf, (size_t)read_len);
+      int write_error = write_all(buf, (size_t)read_len);
+      if (write_error) {
+        write_err_path("cat", "stdout", write_error);
+        if (!input) syscall1(6, fd);
+        return 1;
+      }
     }
-    syscall1(6, fd);
+    if (!input) syscall1(6, fd);
   }
   return exit_code;
 }
@@ -181,16 +197,16 @@ static int cap_awk_small_delimited_fallback(long argc, char **argv) {
   } else if (argc == 6 && c_eq(argv[2], "-F") && argv[3][0] && argv[3][1] == 0) {
     path_index = 5;
   } else {
-    return 127;
+    return CAP_UNSUPPORTED;
   }
 
   long fd = syscall3(5, (long)argv[path_index], O_RDONLY, 0);
-  if (fd < 0) return 127;
+  if (fd < 0) return CAP_UNSUPPORTED;
   struct stat st;
   int small = syscall2(339, fd, (long)&st) == 0 && S_ISREG(st.st_mode) &&
               st.st_size < CAP_AWK_DELIMITED_MIN_BYTES;
   syscall1(6, fd);
-  if (!small) return 127;
+  if (!small) return CAP_UNSUPPORTED;
 
   char *original_argv[argc];
   original_argv[0] = "awk";
@@ -312,10 +328,10 @@ static int cap_run_direct(long argc, char **argv) {
   char *words[128];
   char *rewritten[130];
   long count = 0;
-  if (argc != 3 || !c_eq(argv[1], "run")) return 127;
-  if (!split_run_words(argv[2], buf, sizeof(buf), words, 128, &count)) return 127;
-  for (long idx = 0; idx < count; idx++) if (c_eq(words[idx], "|")) return 127;
-  if (count < 2 || !c_eq(words[0], "cat")) return 127;
+  if (argc != 3 || !c_eq(argv[1], "run")) return CAP_UNSUPPORTED;
+  if (!split_run_words(argv[2], buf, sizeof(buf), words, 128, &count)) return CAP_UNSUPPORTED;
+  for (long idx = 0; idx < count; idx++) if (c_eq(words[idx], "|")) return CAP_UNSUPPORTED;
+  if (count < 2 || !c_eq(words[0], "cat")) return CAP_UNSUPPORTED;
   rewritten[0] = argv[0];
   for (long idx = 0; idx < count; idx++) rewritten[idx + 1] = words[idx];
   rewritten[count + 1] = 0;
@@ -352,13 +368,50 @@ static int exec_fast(long argc, char **argv) {
   return 127;
 }
 
-static int c_main(long argc, char **argv) {
-  if (argc < 2) return 127;
-  if (c_eq(argv[1], "run")) {
-    int code = cap_run_direct(argc, argv);
-    if (code != 127) return code;
+
+/* A separate view is used for probing. Delegation always keeps process argv. */
+static int tiny_pilot(long argc, char **argv) {
+  long start = 1;
+  int trace = argc > start && cap_route_eq(argv[start], "--trace-routing");
+  if (trace) start++;
+  int explain = argc > start + 1 && cap_route_eq(argv[start], "explain") &&
+                cap_route_eq(argv[start + 1], "--json");
+  if (explain) {
+    start += 2;
+    if (argc > start && cap_route_eq(argv[start], "--")) start++;
   }
-  if (c_eq(argv[1], "cat")) return cap_cat(argc, argv);
+  if (argc <= start) return CAP_UNSUPPORTED;
+  char buf[4096];
+  char *parsed[128];
+  char **words = argv + start;
+  long count = argc - start;
+  int string = 0;
+  if (!explain && cap_route_eq(words[0], "run")) {
+    if (count == 2) { string = 1; words++; count--; }
+    else if (count > 2 && cap_route_eq(words[1], "--")) { words += 2; count -= 2; }
+    else return CAP_UNSUPPORTED;
+  } else if (explain && count == 1) string = 1;
+  if (string) {
+    if (!split_run_words(words[0], buf, sizeof(buf), parsed, 128, &count)) return CAP_UNSUPPORTED;
+    words = parsed;
+    for (long idx = 0; idx < count; idx++) if (cap_route_eq(words[idx], "|")) return CAP_UNSUPPORTED;
+  }
+  enum cap_tool_id tool = cap_tool_probe((int)count, words);
+  if (tool != CAP_TOOL_CAT) return CAP_UNSUPPORTED;
+  if (trace || explain) {
+    const char *record = cap_tool_record(tool, 1);
+    write_fd_all(explain ? 1 : 2, record, c_len(record));
+  }
+  if (explain) return 0;
+  char *execution[count + 2];
+  execution[0] = argv[0];
+  for (long idx = 0; idx < count; idx++) execution[idx + 1] = words[idx];
+  execution[count + 1] = 0;
+  return cap_cat(count + 1, execution);
+}
+static int c_main(long argc, char **argv) {
+  int code = tiny_pilot(argc, argv);
+  if (code != CAP_UNSUPPORTED) return code;
   return exec_fast(argc, argv);
 }
 
@@ -386,15 +439,17 @@ static const char *cap_base(const char *s) {
   return p ? p + 1 : s;
 }
 
-static int unsupported(void) { return 127; }
+static int unsupported(void) { return CAP_UNSUPPORTED; }
 
-static void write_all(const char *bytes, size_t len) {
+static int write_all(const char *bytes, size_t len) {
   while (len > 0) {
     ssize_t written = write(1, bytes, len);
-    if (written <= 0) return;
+    if (written < 0 && errno == EINTR) continue;
+    if (written <= 0) return written < 0 ? errno : EIO;
     bytes += (size_t)written;
     len -= (size_t)written;
   }
+  return 0;
 }
 
 static void write_fd_all(int fd, const char *bytes, size_t len) {
@@ -433,19 +488,20 @@ static int cap_cat(int argc, char **argv) {
   char buf[8192];
   int exit_code = 0;
   int skip_regular_reads = stdout_is_dev_null();
-  if (argc < 3) return unsupported();
-  for (int idx = 2; idx < argc; idx++) {
-    if (argv[idx][0] == '-') return unsupported();
-    int fd = open(argv[idx], O_RDONLY);
+  if (cap_tool_probe(argc - 1, argv + 1) != CAP_TOOL_CAT) return unsupported();
+  for (int idx = 2; idx < argc || (argc == 2 && idx == 2); idx++) {
+    int input = argc == 2;
+    const char *label = input ? "stdin" : argv[idx];
+    int fd = input ? STDIN_FILENO : open(label, O_RDONLY);
     if (fd < 0) {
-      write_err_path("cat", argv[idx], errno);
+      write_err_path("cat", label, errno);
       exit_code = 1;
       continue;
     }
-    if (skip_regular_reads) {
+    if (skip_regular_reads && !input) {
       struct stat st;
       if (fstat(fd, &st) == 0 && S_ISREG(st.st_mode)) {
-        close(fd);
+        if (!input) close(fd);
         continue;
       }
     }
@@ -453,13 +509,18 @@ static int cap_cat(int argc, char **argv) {
       ssize_t read_len = read(fd, buf, sizeof(buf));
       if (read_len == 0) break;
       if (read_len < 0) {
-        write_err_path("cat", argv[idx], errno);
+        write_err_path("cat", label, errno);
         exit_code = 1;
         break;
       }
-      write_all(buf, (size_t)read_len);
+      int write_error = write_all(buf, (size_t)read_len);
+      if (write_error) {
+        write_err_path("cat", "stdout", write_error);
+        if (!input) close(fd);
+        return 1;
+      }
     }
-    close(fd);
+    if (!input) close(fd);
   }
   return exit_code;
 }
@@ -488,7 +549,7 @@ static int cap_awk_small_delimited_fallback(int argc, char **argv) {
   for (int idx = 2; idx < argc; idx++) original_argv[idx - 1] = argv[idx];
   original_argv[argc - 1] = NULL;
   execv("/usr/bin/awk", original_argv);
-  return unsupported();
+  return 127;
 }
 
 static int split_run_words(const char *command, char *buf, size_t buf_cap,
@@ -647,9 +708,57 @@ static int exec_fast(int argc, char **argv) {
   return 127;
 }
 
+
+/* A separate view is used for probing. Delegation always keeps process argv. */
+static int tiny_pilot(int argc, char **argv) {
+  int start = 1;
+  int trace = argc > start && cap_route_eq(argv[start], "--trace-routing");
+  if (trace) start++;
+  int explain = argc > start + 1 && cap_route_eq(argv[start], "explain") &&
+                cap_route_eq(argv[start + 1], "--json");
+  if (explain) {
+    start += 2;
+    if (argc > start && cap_route_eq(argv[start], "--")) start++;
+  }
+  if (argc <= start) return CAP_UNSUPPORTED;
+  char buf[4096];
+  char *parsed[128];
+  char **words = argv + start;
+  int count = argc - start;
+  int string = 0;
+  if (!explain && cap_route_eq(words[0], "run")) {
+    if (count == 2) { string = 1; words++; count--; }
+    else if (count > 2 && cap_route_eq(words[1], "--")) { words += 2; count -= 2; }
+    else return CAP_UNSUPPORTED;
+  } else if (explain && count == 1) string = 1;
+  if (string) {
+    if (!split_run_words(words[0], buf, sizeof(buf), parsed, 128, &count)) return CAP_UNSUPPORTED;
+    words = parsed;
+    for (int idx = 0; idx < count; idx++) if (cap_route_eq(words[idx], "|")) return CAP_UNSUPPORTED;
+  }
+  enum cap_tool_id tool = cap_tool_probe((int)count, words);
+  if (tool != CAP_TOOL_CAT) return CAP_UNSUPPORTED;
+  if (trace || explain) {
+    const char *record = cap_tool_record(tool, 1);
+    write_fd_all(explain ? 1 : 2, record, strlen(record));
+  }
+  if (explain) return 0;
+  char *execution[count + 2];
+  execution[0] = argv[0];
+  for (int idx = 0; idx < count; idx++) execution[idx + 1] = words[idx];
+  execution[count + 1] = 0;
+  return cap_cat(count + 1, execution);
+}
 int main(int argc, char **argv) {
-  int code = dispatch_tiny(argc, argv);
-  if (code != 127) return code;
+  int code = tiny_pilot(argc, argv);
+  if (code != CAP_UNSUPPORTED) return code;
+  /* Diagnostics must be emitted by the layer that actually handles the tool. */
+  if (argc > 1 && (cap_route_eq(argv[1], "--trace-routing") ||
+      (argc > 2 && cap_route_eq(argv[1], "explain") && cap_route_eq(argv[2], "--json")))) {
+    return exec_fast(argc, argv);
+  }
+  code = dispatch_tiny(argc, argv);
+  if (code != CAP_UNSUPPORTED) return code;
   return exec_fast(argc, argv);
 }
 

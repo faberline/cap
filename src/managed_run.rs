@@ -1,14 +1,12 @@
 // SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
-//! The supervised-run helper: run a child as a cap *lease* so the daemon can
-//! throttle it under memory pressure, and hand back the structured outcome.
+//! Command supervision with signal forwarding, logging, and explicit timeouts.
 //!
-//! This is the reusable core of `cap run`'s process supervision. Callers do not
-//! re-implement the Acquire → Spawned → wait → Release dance, the process-group
-//! spawn, or the terminal-signal forwarding.
+//! The CLI uses local supervision. Library clients can also use the
+//! Acquire → Spawned → wait → Release protocol with a compatibility daemon.
 //!
-//! The daemon stays the single arbiter: callers register here as clients, they
-//! do **not** embed throttling logic of their own.
+//! Normal shell commands run locally without a daemon or resource sampling.
+//! The daemon client helper remains available for compatibility.
 
 use anyhow::{bail, Result};
 
@@ -21,20 +19,105 @@ use crate::supervisor::{self, SpawnOpts, SpawnSpec};
 pub struct ManagedOutcome {
     /// The child's final exit status.
     pub status: std::process::ExitStatus,
-    /// Present iff the daemon SIGKILLed the child under memory pressure.
+    /// Present if cap stopped the child for an explicit timeout.
     /// Read `classification` / `action` to decide whether to retry.
     pub kill_envelope: Option<KillEnvelope>,
 }
 
-/// Run `spec` under daemon protection on an already-connected `client`.
+/// Run locally. Old daemons and retired resource settings cannot affect this
+/// command. Only positive timeout flags enable the periodic supervision loop.
+pub async fn run_direct(
+    spec: SpawnSpec,
+    label: Option<String>,
+    timeout_secs: Option<u64>,
+    idle_timeout_secs: Option<u64>,
+) -> Result<ManagedOutcome> {
+    use std::time::Duration;
+
+    use crate::config::Config;
+    use crate::eventlog::EventLog;
+    use crate::sampler::CpuSampler;
+    use crate::throttle::Throttle;
+
+    let cfg = Config::load().unwrap_or_else(|error| {
+        eprintln!("cap: cannot read config ({error:#}); using defaults");
+        Config::default()
+    });
+    let interval = Duration::from_millis(cfg.protect.sample_interval_ms.max(50));
+    let eventlog = EventLog::new(cfg.log.enabled);
+    let tracker = Throttle::new(cfg, 0.0, 0.0, 0.0)?;
+    let duration = |secs: Option<u64>| secs.filter(|s| *s > 0).map(Duration::from_secs);
+    let timeout = duration(timeout_secs);
+    let idle_timeout = duration(idle_timeout_secs);
+    let label = label.unwrap_or_else(|| {
+        std::iter::once(spec.program.as_str())
+            .chain(spec.args.iter().map(String::as_str))
+            .collect::<Vec<_>>()
+            .join(" ")
+    });
+    let cwd = spec.cwd.clone().or_else(|| std::env::current_dir().ok());
+    let lease = tracker
+        .register(
+            std::process::id() as i32,
+            crate::hook::effective_program(&spec.program, &spec.args),
+            label,
+            cwd.map(|path| path.display().to_string())
+                .unwrap_or_default(),
+            timeout,
+            idle_timeout,
+        )
+        .await;
+    let running = supervisor::spawn(&spec, SpawnOpts { nice: 0 })?;
+    let pid = running.pid;
+    let forwarder = spawn_signal_forwarder(pid);
+    tracker.attach_pid(lease, pid).await;
+    let status = if timeout.is_some() || idle_timeout.is_some() {
+        // CPU sampling serves only an explicitly requested idle timeout.
+        // Memory use and host load never affect command execution.
+        let mut cpu = idle_timeout.map(|_| CpuSampler::new());
+        if let Some(cpu) = &mut cpu {
+            cpu.cpu_usage(&[pid]);
+        }
+        let mut timer = tokio::time::interval(interval);
+        timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+        timer.tick().await;
+        let waiting = running.wait();
+        tokio::pin!(waiting);
+        loop {
+            tokio::select! {
+                status = &mut waiting => break status,
+                _ = timer.tick() => {
+                    if let Some(cpu) = &mut cpu {
+                        tracker.note_cpu_usage(&cpu.cpu_usage(&[pid])).await;
+                    }
+                    tracker.tick(f64::NAN, 0.0, &|_| None).await;
+                }
+            }
+        }
+    } else {
+        running.wait().await
+    };
+    forwarder.abort();
+    let status = status?;
+    let outcome = tracker.release(lease, status.code()).await;
+    if let Some(record) = &outcome.record {
+        eventlog.append(record);
+    }
+    Ok(ManagedOutcome {
+        status,
+        kill_envelope: outcome.kill_envelope,
+    })
+}
+
+/// Run `spec` with a compatibility lease on an already-connected `client`.
 ///
 /// `label` is the human/agent-facing name recorded in the lease (e.g. the
 /// original command line, or another tool's workload id). The full lease dance:
 ///
-/// 1. `Acquire` — register intent, receive a lease id + suggested `nice`.
+/// 1. `Acquire` — register intent and receive a lease id.
 /// 2. spawn the child in its own process group.
 /// 3. `Spawned` — tell the daemon the PID so it can target it.
-/// 4. wait (the daemon may pause/resume/kill behind our back).
+/// 4. wait (the daemon can enforce the requested timeouts).
 /// 5. `Release` — report exit; receive a kill envelope iff we were killed.
 /// @spec tech-design/semantic/cap-src.md#schema
 pub async fn managed_run(
@@ -87,7 +170,7 @@ pub async fn managed_run(
         other => eprintln!("cap: warn: unexpected response to Spawned: {other:?}"),
     }
 
-    // 4. Wait for the child; the daemon may pause/kill it behind our back.
+    // 4. Wait for the child; the daemon can enforce requested timeouts.
     let status = running.wait().await?;
     forwarder.abort();
 
@@ -114,12 +197,13 @@ pub async fn managed_run(
 /// interactive Ctrl-C still reaches it despite the process-group remap.
 fn spawn_signal_forwarder(child_pid: i32) -> tokio::task::JoinHandle<()> {
     use tokio::signal::unix::{signal, SignalKind};
+    let signals = (
+        signal(SignalKind::interrupt()),
+        signal(SignalKind::terminate()),
+        signal(SignalKind::hangup()),
+    );
     tokio::spawn(async move {
-        let (mut sigint, mut sigterm, mut sighup) = match (
-            signal(SignalKind::interrupt()),
-            signal(SignalKind::terminate()),
-            signal(SignalKind::hangup()),
-        ) {
+        let (mut sigint, mut sigterm, mut sighup) = match signals {
             (Ok(a), Ok(b), Ok(c)) => (a, b, c),
             _ => return,
         };
