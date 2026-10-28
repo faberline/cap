@@ -10,21 +10,14 @@
 // @command cargo test -p cap --lib sampler -- --nocapture
 // AW-EC-END
 
-// Contract: sampler output is stable enough for daemon pressure decisions
-// Contract: memory and CPU pressure readings remain available to lease admission
+// Contract: sampling supplies telemetry and explicit idle-timeout checks only
+// Contract: command admission never waits for memory or CPU capacity
 #[test]
-#[ignore = "AW EC gate: run via `aw health --verify-ec` or `cargo test -- --ignored`"]
+#[ignore = "Nested Cargo gate: run this contract with --ignored"]
 fn cap_memory_and_cpu_pressure_sampling() {
     let command = "cargo test -p cap --lib sampler -- --nocapture";
     let id = "cap-memory-and-cpu-pressure-sampling";
-    let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    while !root.join(".aw").is_dir() {
-        assert!(
-            root.pop(),
-            "AW EC {id}: no .aw/ project root above {}",
-            env!("CARGO_MANIFEST_DIR")
-        );
-    }
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let output = std::process::Command::new("sh")
         .arg("-c")
         .arg(command)

@@ -1,13 +1,9 @@
 // SPEC-MANAGED: tech-design/semantic/cap-src.md#schema
 // CODEGEN-BEGIN
-//! Daemon process: owns the Throttle, runs the sampler loop, serves
-//! UDS connections.
+//! Compatibility daemon for command leases, logs, and explicit timeouts.
 //!
-//! Wire format: each connection is a stream of newline-delimited JSON
-//! requests. The daemon associates the connection with at most one
-//! lease — on EOF, that lease's child (if any) is best-effort SIGKILLed
-//! and the lease is dropped, so a crashed client cannot leave an
-//! orphan paused process hanging around.
+//! Memory and CPU measurements are telemetry only. Commands are admitted
+//! immediately. The daemon never pauses commands or reaps other processes.
 
 use std::sync::Arc;
 
@@ -19,27 +15,10 @@ use crate::config::Config;
 use crate::eventlog::EventLog;
 use crate::paths;
 use crate::protocol::{LeaseId, Request, Response};
-use crate::reap::Reaper;
 use crate::sampler::{CpuSampler, LoadSampler, MemorySampler, RssSampler};
 use crate::throttle::{Throttle, TickAction};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-
-/// Hard cap on how long any `wait_for_capacity` request can park a
-/// daemon connection. Even if the client asks for 1 h, we wake the
-/// connection at this point so it can decide whether to re-issue the
-/// wait or give up. 5 min was picked to match typical CI-step budgets.
-const SERVER_WAIT_CAP: std::time::Duration = std::time::Duration::from_secs(5 * 60);
-
-/// One-shot "are we currently under pause pressure?" sample, used by
-/// the Acquire backpressure path. Creates fresh samplers because the
-/// sampler loop's are owned by another task and `MemorySampler` /
-/// `LoadSampler` are cheap to spin up.
-fn is_under_pressure_now(throttle: &Throttle) -> bool {
-    let mut mem = MemorySampler::new();
-    let load = LoadSampler::new().load_per_core();
-    throttle.is_under_pause_pressure(mem.free_gb(), load)
-}
 
 /// Hold an exclusive `flock` on `~/.cap/cap.lock` for the lifetime
 /// of the daemon. Drop = release. If another daemon already holds it,
@@ -88,39 +67,8 @@ pub async fn run_foreground() -> Result<()> {
         }
     };
     let cfg = Config::load()?;
-    // Resolve TWO percentage caps into TWO absolute floors using
-    // total RAM measured at startup. Take the larger of each pair so
-    // small machines keep the explicit reserve and large machines
-    // aren't forced to leave double-digit GB idle. Slice 1 plumbs
-    // both floors through Throttle::new; Slice 2 introduces the
-    // two-threshold tick logic that actually consults kill_floor.
-    let mut probe = MemorySampler::new();
-    let total_gb = probe.total_gb();
-    let free_gb = probe.free_gb();
-    let used_gb = (total_gb - free_gb).max(0.0);
-    let absolute_floor = cfg.protect.min_free_gb;
-    let pause_pct = cfg.protect.pause_used_percent.min(100) as f64;
-    let kill_pct = cfg.protect.kill_used_percent.min(100) as f64;
-    let derived_pause_floor = total_gb * (1.0 - pause_pct / 100.0);
-    let derived_kill_floor = total_gb * (1.0 - kill_pct / 100.0);
-    let pause_floor_gb = absolute_floor.max(derived_pause_floor);
-    let kill_floor_gb = absolute_floor.max(derived_kill_floor);
-    tracing::info!(
-        total_gb = format!("{total_gb:.2}"),
-        used_gb = format!("{used_gb:.2}"),
-        free_gb = format!("{free_gb:.2}"),
-        absolute_floor_gb = format!("{absolute_floor:.2}"),
-        pause_used_percent = cfg.protect.pause_used_percent,
-        kill_used_percent = cfg.protect.kill_used_percent,
-        derived_pause_floor_gb = format!("{derived_pause_floor:.2}"),
-        derived_kill_floor_gb = format!("{derived_kill_floor:.2}"),
-        pause_floor_gb = format!("{pause_floor_gb:.2}"),
-        kill_floor_gb = format!("{kill_floor_gb:.2}"),
-        "memory floors resolved",
-    );
     let eventlog = Arc::new(EventLog::new(cfg.log.enabled));
-    let throttle = Throttle::new(cfg, pause_floor_gb, kill_floor_gb, total_gb)
-        .context("invalid protect config: kill_used_percent must be > pause_used_percent")?;
+    let throttle = Throttle::new(cfg, 0.0, 0.0, 0.0)?;
     let socket = paths::socket_path()?;
     paths::ensure_home()?;
     let _ = std::fs::remove_file(&socket);
@@ -176,92 +124,26 @@ async fn sampler_loop(throttle: Arc<Throttle>) {
     let mut sampler = MemorySampler::new();
     let mut rss_sampler = RssSampler::new();
     let mut cpu_sampler = CpuSampler::new();
-    let load_sampler = LoadSampler::new();
-    let mut reaper = Reaper::new();
-    let kill_floor = throttle.kill_floor_gb();
     loop {
-        let free = sampler.free_gb();
-        let load = load_sampler.load_per_core();
-        // Refresh RSS only for our active lease PIDs (typically ≤ 8).
-        // sysinfo's `refresh_processes_specifics` skips the full table
-        // scan, so this is cheap even on busy boxes.
         let pids = throttle.active_child_pids().await;
-        let rss_map = rss_sampler.rss_bytes(&pids);
-        let rss_lookup: &(dyn Fn(i32) -> Option<u64> + Send + Sync) =
-            &|pid| rss_map.get(&pid).copied();
-        // Idle-timeout bookkeeping: feed this tick's CPU% into every
-        // lease with `--idle-timeout` configured BEFORE calling
-        // tick(), so tick() sees the freshly-advanced `idle_ticks`
-        // debounce counter when it decides whether to fire.
-        let cpu_map = cpu_sampler.cpu_usage(&pids);
-        throttle.note_cpu_usage(&cpu_map).await;
-        let action = throttle.tick(free, load, rss_lookup).await;
-
-        // Reap path (Slice 6): when memory is below kill_floor and
-        // configured, SIGTERM known auto-restarting non-lease
-        // processes (LSPs, proc-macro servers). Runs in parallel to
-        // the throttle tick — they target disjoint sets (lease PIDs
-        // vs allowlisted non-lease PIDs). Cooldown bounds the
-        // sysinfo full-refresh cost when memory stays low for long.
-        let protect = &throttle.config().protect;
-        if protect.reap_enabled
-            && free < kill_floor
-            && reaper.cooldown_elapsed(std::time::Duration::from_secs(protect.reap_cooldown_secs))
-        {
-            let reaped = reaper.scan_and_reap(protect.reap_min_uptime_secs, &pids);
-            for r in &reaped {
-                tracing::warn!(
-                    pid = r.pid,
-                    name = %r.name,
-                    rss_mb = r.rss_bytes / (1024 * 1024),
-                    uptime_secs = r.uptime_secs,
-                    free_gb = free,
-                    "reaped allowlisted process (auto-restarting non-lease)"
-                );
+        if !pids.is_empty() {
+            let free = sampler.free_gb();
+            let rss_map = rss_sampler.rss_bytes(&pids);
+            let rss_lookup: crate::throttle::RssLookup<'_> = &|pid| rss_map.get(&pid).copied();
+            let idle_pids = throttle.idle_timeout_child_pids().await;
+            if !idle_pids.is_empty() {
+                let cpu_map = cpu_sampler.cpu_usage(&idle_pids);
+                throttle.note_cpu_usage(&cpu_map).await;
             }
-        }
-        match action {
-            TickAction::Idle => {}
-            TickAction::Resumed(id) => {
-                tracing::info!(lease = id, free_gb = free, "resumed");
-            }
-            TickAction::PausedNewest(id) => {
-                tracing::info!(
-                    lease = id,
-                    free_gb = free,
-                    "paused-newest (memory pressure)"
-                );
-            }
-            TickAction::TermedVictim { id, classification } => {
-                tracing::warn!(
-                    lease = id,
-                    free_gb = free,
-                    classification = ?classification,
-                    grace_secs = throttle.config().protect.kill_grace_secs,
-                    "termed-victim (sent SIGTERM, waiting grace)"
-                );
-            }
-            TickAction::EscalatedToKill { id } => {
-                tracing::warn!(
-                    lease = id,
-                    free_gb = free,
-                    "escalated-to-kill (grace expired, SIGKILL group)"
-                );
-            }
-            TickAction::KilledVictim { id, classification } => {
-                tracing::warn!(
-                    lease = id,
-                    free_gb = free,
-                    classification = ?classification,
-                    "killed-victim (memory pressure, no grace)"
-                );
-            }
-            TickAction::KilledAllPaused(ids) => {
-                tracing::warn!(
-                    free_gb = free,
-                    leases = ?ids,
-                    "killed-all-paused (last resort)"
-                );
+            match throttle.tick(free, 0.0, rss_lookup).await {
+                TickAction::TermedVictim { id, classification }
+                | TickAction::KilledVictim { id, classification } => {
+                    tracing::warn!(lease = id, ?classification, "explicit timeout reached");
+                }
+                TickAction::EscalatedToKill { id } => {
+                    tracing::warn!(lease = id, "timeout grace expired; killed process group");
+                }
+                _ => {}
             }
         }
         tokio::time::sleep(interval).await;
@@ -325,15 +207,6 @@ async fn handle_conn(
                 // through the shell to the real tool (`cargo`, `pytest`),
                 // so hints fire and the log groups by the actual command.
                 let program = crate::hook::effective_program(&a.program, &a.args);
-                // Acquire-time backpressure: if the system is currently
-                // under pause pressure (memory OR CPU), wait for
-                // headroom before handing out the lease. Server-side
-                // hard cap of 5 min ensures we never hang a client
-                // forever. The client perceives this as `cap run`
-                // simply taking longer to start.
-                if is_under_pressure_now(&throttle) {
-                    let _ = throttle.wait_for_capacity(Some(SERVER_WAIT_CAP)).await;
-                }
                 // `None` defers to the config default; `Some(0)` (or a
                 // `0` default) means disabled — only a positive number
                 // of seconds becomes an active `Duration` budget.
@@ -350,7 +223,7 @@ async fn handle_conn(
                     .register(a.client_pid, program, label, a.cwd, timeout, idle_timeout)
                     .await;
                 held_lease = Some(lease);
-                let nice = throttle.config().defaults.nice;
+                let nice = 0;
                 write_resp(&mut tx, &Response::Lease { lease, nice }).await?;
             }
             Request::Spawned { lease, child_pid } => {
@@ -382,23 +255,8 @@ async fn handle_conn(
                 let snap = throttle.snapshot(free, load).await;
                 write_resp(&mut tx, &Response::Status(snap)).await?;
             }
-            Request::WaitForCapacity { timeout_secs } => {
-                // Server-side hard cap of 5 minutes regardless of what
-                // the client requested, so a runaway client cannot
-                // pin a connection forever. `None` lets the cap apply;
-                // `Some(0)` is a non-blocking probe.
-                let deadline = match timeout_secs {
-                    None => SERVER_WAIT_CAP,
-                    Some(0) => std::time::Duration::from_secs(0),
-                    Some(s) => std::time::Duration::from_secs(s).min(SERVER_WAIT_CAP),
-                };
-                let ok = throttle.wait_for_capacity(Some(deadline)).await;
-                let resp = if ok {
-                    Response::CapacityOk
-                } else {
-                    Response::CapacityTimeout
-                };
-                write_resp(&mut tx, &resp).await?;
+            Request::WaitForCapacity { .. } => {
+                write_resp(&mut tx, &Response::CapacityOk).await?;
             }
             Request::Shutdown => {
                 write_resp(&mut tx, &Response::ShuttingDown).await?;
@@ -408,9 +266,7 @@ async fn handle_conn(
         }
     }
 
-    // EOF safety net: drop the lease so a crashed client cannot leave
-    // its child paused forever. The command still gets a run-log record
-    // (exit code unknown — the client never sent Release).
+    // Drop a disconnected client's lease and record its unknown exit status.
     if let Some(lease) = held_lease.take() {
         let outcome = throttle.release(lease, None).await;
         if let Some(rec) = &outcome.record {

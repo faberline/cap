@@ -16,6 +16,42 @@ version = 1
 project = "cap"
 generated_from_td_digest = "sha256:0eebc26b7373bf8a5511f35f4512a4c7cb7ca273fcac079537680c44d6a8aecd"
 
+# Legacy EC IDs remain stable across the removal of resource governance.
+# The generated digest above is historical provenance, not a fresh gate result.
+[[aw.ec.generated.cases]]
+id = "cap-tool-routing"
+capability_id = "command-lease-throttling"
+claim_id = "native-tool-routing-contract"
+contract_id = "tool-routing"
+category = "behavior"
+test_path = "tests/behavior_cap_tool_routing.rs"
+command = "cargo test -p cap --test behavior_cap_tool_routing"
+required_for_production = true
+assertions = [
+    "pilot cat and wc tools have observable native routes across public and Rust entrypoints",
+    "explanation matches execution without consuming input or executing a command",
+    "unsupported commands fall back once before partial output or side effects",
+    "real exit code 127 is preserved without a retry",
+    "Claude and Codex hook-produced commands reach the native tools",
+]
+
+[[aw.ec.generated.cases]]
+id = "cap-unrestricted-shell"
+capability_id = "command-lease-throttling"
+claim_id = "direct-shell-execution-without-resource-limits"
+contract_id = "unrestricted-shell"
+category = "behavior"
+td_ref = "tech-design/logic/external-contracts.md#cap-unrestricted-shell"
+test_path = "tests/behavior_cap_unrestricted_shell.rs"
+command = "cargo test -p cap --test behavior_cap_unrestricted_shell"
+required_for_production = true
+assertions = [
+    "normal commands run without starting or contacting the daemon",
+    "legacy memory, CPU, priority and reap settings cannot restrict commands",
+    "external commands preserve output, exit status and caller priority",
+    "explicit external-command timeouts remain available",
+]
+
 [[aw.ec.generated.cases]]
 id = "cap-agent-hook-installation"
 capability_id = "agent-hook-installation"
@@ -44,7 +80,7 @@ test_path = "tests/behavior_cap_cli_status_and_wait_surfaces.rs"
 command = "cargo test -p cap --lib cli -- --nocapture"
 required_for_production = true
 assertions = [
-    "status and wait CLI surfaces use the daemon contract without blocking agent commands",
+    "status shows optional daemon leases and cap wait returns success immediately",
     "command leases stay isolated by process group",
 ]
 
@@ -59,9 +95,9 @@ test_path = "tests/behavior_cap_command_lease_throttling.rs"
 command = "cargo test -p cap --lib throttle -- --nocapture && cargo test -p cap sampler -- --nocapture"
 required_for_production = true
 assertions = [
-    "cap leases pause, resume, and kill under configured pressure thresholds",
-    "release outcomes preserve structured kill diagnostics",
-    "sampler output is stable enough for daemon pressure decisions",
+    "memory and CPU pressure never pause or kill cap commands",
+    "explicit timeout outcomes preserve structured diagnostics",
+    "sampling supplies telemetry and explicit idle-timeout checks only",
 ]
 
 [[aw.ec.generated.cases]]
@@ -72,12 +108,12 @@ contract_id = "config-logging-and-reap-policy"
 category = "behavior"
 td_ref = "tech-design/logic/external-contracts.md#cap-config-logging-and-reap-policy"
 test_path = "tests/behavior_cap_config_logging_and_reap_policy.rs"
-command = "cargo test -p cap --lib config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap reap -- --nocapture"
+command = "cargo test -p cap --lib config -- --nocapture && cargo test -p cap eventlog -- --nocapture && cargo test -p cap --test behavior_cap_unrestricted_shell"
 required_for_production = true
 assertions = [
-    "configuration defaults and compatibility rules stay stable",
+    "legacy resource-control keys parse without enforcing limits",
     "JSONL event log persistence roundtrips run records",
-    "reap allowlist policy stays bounded and excludes active cap leases",
+    "cap never reaps other processes for memory pressure",
 ]
 
 [[aw.ec.generated.cases]]
@@ -92,7 +128,7 @@ command = "cargo test -p cap --lib daemon -- --nocapture && cargo test -p cap cl
 required_for_production = true
 assertions = [
     "daemon lifecycle and liveness surfaces remain callable",
-    "status and wait CLI surfaces use the daemon contract without blocking agent commands",
+    "status shows optional daemon leases and cap wait returns success immediately",
     "command leases stay isolated by process group",
 ]
 
@@ -171,8 +207,8 @@ test_path = "tests/behavior_cap_memory_and_cpu_pressure_sampling.rs"
 command = "cargo test -p cap --lib sampler -- --nocapture"
 required_for_production = true
 assertions = [
-    "sampler output is stable enough for daemon pressure decisions",
-    "memory and CPU pressure readings remain available to lease admission",
+    "sampling supplies telemetry and explicit idle-timeout checks only",
+    "command admission never waits for memory or CPU capacity",
 ]
 
 [[aw.ec.generated.cases]]
@@ -183,11 +219,11 @@ contract_id = "reap-allowlist-policy"
 category = "behavior"
 td_ref = "tech-design/logic/external-contracts.md#cap-reap-allowlist-policy"
 test_path = "tests/behavior_cap_reap_allowlist_policy.rs"
-command = "cargo test -p cap --lib reap -- --nocapture"
+command = "cargo test -p cap --test behavior_cap_unrestricted_shell"
 required_for_production = true
 assertions = [
-    "reap allowlist policy stays bounded",
-    "active cap leases are excluded from reap actions",
+    "cap never reaps other processes for memory pressure",
+    "legacy reap settings cannot enable process reaping",
 ]
 
 [[aw.ec.generated.cases]]

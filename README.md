@@ -1,30 +1,23 @@
-# cap — resource-protection wrapper
+# cap — efficient shell tools
 
 ## Brief
 
-`cap` keeps heavy local commands (`cargo test`, `uv run`, `pnpm build`,
-…) from eating the whole machine. It is built for one job in
-particular: **throttling the Bash commands a coding agent
-(Claude Code, Codex CLI, AGY) fires off**, so an agent that happily launches
-8 `cargo test`s at once can't OOM your box.
+`cap` makes common shell commands and pipelines more efficient for coding agents.
+It uses native implementations for supported command shapes.
+It runs other commands with their normal shell behavior.
 
-It is **not** an environment manager. No sandboxing, no container, no
-chroot, no PATH munging. It watches the OS's idea of free memory and
-pauses / resumes / kills the commands you run through it.
+Commands keep the caller's priority.
+Memory use and CPU load do not delay, pause, or kill commands.
+Cap does not stop other processes to reclaim memory.
+Use an explicit timeout flag when a command needs a time limit.
 
-## AW Verification Snapshot
+## Verification
 
-Last verified: 2026-06-05
-Production readiness: ready
-Tech design root: `tech-design`
-TD lock: `tech-design/td.lock`
-External-contract inventory: `aw.toml`
-Source ownership: full codegen, 100.0% (15/15)
-Semantic coverage: 100.0%
-Traceability coverage: 100.0%
-External-contract gate: passed, 4/4
-Test gate: `cargo test -p cap` passed
-
+Run `cargo test -p cap` for the complete local test gate.
+Run `cargo test -p cap --test behavior_cap_unrestricted_shell` for direct-run,
+legacy-config, priority, and explicit-timeout checks.
+Run `cargo bench -p cap --bench command_resources` for efficiency measurements.
+The recorded benchmarks in `BENCHMARKS.md` are historical measurements.
 
 ## Capabilities
 
@@ -40,9 +33,9 @@ the commands named in each row are the only part that runs.
 |---|---:|---|
 | Agent Hook Installation | - | `cargo test -p cap --test behavior_cap_agent_hook_installation` |
 | Standard Agent CLI Operations | #477 | `cargo test -p cap --test behavior_cap_standard_agent_cli_operations` |
-| Command Lease Throttling | - | `cargo test -p cap --test behavior_cap_command_lease_throttling` |
+| Efficient Shell Execution | - | `cargo test -p cap --test behavior_cap_unrestricted_shell` |
 | Daemon Lifecycle and Status | - | `cargo test -p cap --test behavior_cap_daemon_lifecycle_and_status` |
-| Config, Logging, and Reap Policy | - | `cargo test -p cap --test behavior_cap_config_logging_and_reap_policy` |
+| Config and Logging | - | `cargo test -p cap --test behavior_cap_config_logging_and_reap_policy` |
 
 ### Agent Hook Installation
 
@@ -51,7 +44,7 @@ Claude Code, Codex CLI, and AGY, preserving unrelated user configuration.
 Claude/Codex route Bash through cap; AGY applies the destructive-command guard
 to `run_command`. Agent hooks deny destructive commands they cannot prove stay
 inside the current Git workspace; `cap status` reports global hook state
-alongside daemon capacity.
+alongside optional daemon status.
 
 - Root WI: none; this capability predates the tracker.
 - Surfaces: CLI: `cap on` + `cap off` + `cap status` + `cap hook` +
@@ -90,100 +83,70 @@ and `issue` for tracker search/view/create with `app:cap` diagnostics.
 - Evidence: `cargo test -p cap --test behavior_cap_standard_agent_cli_operations` 
   `cargo test -p cap --test behavior_cap_standard_agent_cli_operations`
 
-### Command Lease Throttling
+### Efficient Shell Execution
 
-`cap run` wraps local commands in daemon leases, applies memory-pressure
-backpressure, and emits structured outcomes when a command must wait, pause,
-resume, or be killed. Independently of memory/CPU pressure, `--timeout <secs>`
-kills a lease once its wall-clock run time (excluding time spent `Paused`)
-exceeds the budget, and `--idle-timeout <secs>` kills a lease that makes no CPU
-progress for that many seconds (also excluding `Paused` time). Both flags
-default to the daemon's `default_timeout_secs`/`default_idle_timeout_secs`
-config (0 = disabled) when omitted, and an explicit `0` disables the trigger
-for that invocation regardless of the config default. Both triggers reuse the
-existing SIGTERM-grace/SIGKILL escalation and `KillEnvelope` reporting — no new
-kill mechanism — surfaced as the `AbsoluteTimeout`/`IdleTimeout`
-classifications with `RaiseTimeoutOrSplit`/`InvestigateHang` actions.
+`cap run` selects native implementations for supported commands and pipelines.
+Other commands run directly with inherited input, output, and environment.
+The direct path does not start or contact the daemon.
+An old daemon cannot apply resource limits to these commands.
+
+`--timeout <secs>` limits elapsed run time for an external command.
+`--idle-timeout <secs>` stops an external command after that many seconds
+without observed CPU progress.
+Both flags are off when omitted. An explicit `0` also disables the trigger.
+These flags use SIGTERM, a grace period, and then SIGKILL if needed.
+They return structured timeout diagnostics.
+Native replacements keep their existing execution path.
 
 - Root WI: none; this capability predates the tracker.
-- Surfaces: CLI: `cap run '<command string>'` + `cap run -- <argv...>` +
-  `cap <passthrough...>` + `cap run --timeout <secs>` +
-  `cap run --idle-timeout <secs>` + `cap wait` - Command wrapping, explicit
-  argv mode, passthrough wrapping, per-invocation wall-clock/idle timeout
-  overrides, and headroom wait entrypoints for agent-launched local commands.
-- Gate — behavior: `cap` - command wrapping, shell-string fallback, lease
-  admission, pause/resume/kill outcomes, absolute and idle wall-clock timeouts,
-  and structured run envelopes
-- Gate — efficiency: `cap` - same-name command replacement decisions and
-  resource gates over CPU time and peak RSS
-- Gate — stability: `cap` - memory and CPU pressure backpressure, and
-  independent wall-clock/idle-progress timeouts, that prevent agent-launched
-  local commands from exhausting the host or hanging silently
-- Gate: `cargo test -p cap --test behavior_cap_command_lease_throttling`
-- Gate: `cargo test -p cap --test behavior_cap_command_lease_throttling`
-- Gate: `cargo test -p cap --test behavior_cap_command_lease_throttling`
-- Gate: `cargo test -p cap --test behavior_cap_command_lease_throttling`
-- Gate: `cargo test -p cap --test behavior_cap_command_lease_throttling`
-
-| Work Root | Kind | WI | Gate / Evidence |
-|---|---|---:|---|
-| Lease admission and process supervision | epic | - | `cargo test -p cap --lib` |
-| Memory and CPU pressure sampling | epic | - | `cargo test -p cap --test behavior_cap_memory_and_cpu_pressure_sampling` |
-| Absolute and idle wall-clock timeouts | epic | #1323 | `cargo test -p cap --lib` |
-| Command planner cd-prefix native recognition | change | #1378 | `cargo test -p cap --lib` |
-| Command planner grep flag native recognition | change | #1392 | `cargo test -p cap --lib` |
+- Surfaces: `cap run '<command string>'`, `cap run -- <argv...>`,
+  `cap <passthrough...>`, `cap --trace-routing <command...>`, and
+  `cap explain [--json] -- <argv...>`.
+- Gate — behavior: command output, errors, exit status, shell fallback,
+  direct execution without resource limits, and explicit external-command timeouts.
+- Gate — efficiency: CPU time and peak resident memory measurements for native replacements.
+- Gate: `cargo test -p cap --test behavior_cap_unrestricted_shell`
+- Gate: `cargo test -p cap --test behavior_cap_tool_routing`
+- Gate: `cargo test -p cap --test behavior_cap_command_replacement_parity`
+- Gate: `cargo test -p cap --lib command_planner`
+- Gate: `cargo bench -p cap --bench command_resources`
 
 ### Daemon Lifecycle and Status
 
-The cap daemon can start, stop, report status, answer liveness probes, and keep
-command leases isolated by process group without becoming a hard dependency for
-agent commands.
+The daemon remains available for clients that register command leases.
+A lease is a record of a running command.
+The daemon records status and enforces requested timeouts.
+It has no memory or CPU limits.
+
+`cap status` and `cap ps` show agent hooks and leases registered with the daemon.
+Normal direct commands do not register with the daemon.
+`cap wait` is a compatibility command. It returns success at once.
 
 - Root WI: none; this capability predates the tracker.
-- Surfaces: CLI: `cap daemon` + `cap status` + `cap ps` + `cap ping` +
-  `cap wait` - Daemon lifecycle, lease/pressure status, liveness probe, and
-  wait-for-headroom entrypoints.
-- Gate — behavior: `cap` - daemon lifecycle, lease status, liveness, process
-  group isolation, and wait command behavior
-- Gate — stability: `cap` - fail-open command path, bounded wait behavior,
-  process-group lease isolation, and daemon liveness recovery
+- Surfaces: `cap daemon`, `cap status`, `cap ps`, `cap ping`, and `cap wait`.
 - Gate: `cargo test -p cap --test behavior_cap_daemon_lifecycle_and_status`
-- Gate: `cargo test -p cap --test behavior_cap_daemon_lifecycle_and_status`
+- Gate: `cargo test -p cap --test behavior_cap_cli_status_and_wait_surfaces`
+- Gate: `cargo test -p cap --lib throttle`
 
-| Work Root | Kind | WI | Gate / Evidence |
-|---|---|---:|---|
-| Daemon process lifecycle | epic | - | `cargo test -p cap --test behavior_cap_daemon_lifecycle_and_status` |
-| CLI status and wait surfaces | epic | - | `cargo test -p cap --test behavior_cap_cli_status_and_wait_surfaces` |
+### Config and Logging
 
-### Config, Logging, and Reap Policy
-
-Cap exposes durable local configuration, JSONL run logging, and a bounded reap
-policy for auto-restarting tool processes under kill-floor pressure.
+Cap reads local configuration and can append JSONL records for external commands.
+JSONL stores one JSON record per line.
+Old resource-control keys remain readable for upgrade compatibility.
+They do not control command admission, priority, memory, or CPU use.
 
 - Root WI: none; this capability predates the tracker.
-- Surfaces: CLI: `cap config` + `cap status` - Local configuration and status
-  surfaces for inspecting runtime pressure, leases, and cap policy state.;
-  Config: `~/.cap/config.toml` + `JSONL run log` - Durable local configuration,
-  run-log persistence, and bounded reap allowlist policy artifacts.
-- Gate — behavior: `cap` - configuration defaults/compatibility, JSONL run-log
-  persistence, and reap allowlist policy behavior
-- Gate — stability: `cap` - bounded auto-reap policy and persistent logs/config
-  that keep restart and pressure decisions auditable
+- Surfaces: `cap config`, `~/.cap/config.toml`, and the JSONL run log.
 - Gate: `cargo test -p cap --test behavior_cap_config_logging_and_reap_policy`
-- Gate: `cargo test -p cap --test behavior_cap_config_logging_and_reap_policy`
-- Gate: `cargo test -p cap --test behavior_cap_config_logging_and_reap_policy`
-
-| Work Root | Kind | WI | Gate / Evidence |
-|---|---|---:|---|
-| Configuration defaults and compatibility | epic | - | `cargo test -p cap --test behavior_cap_config_logging_and_reap_policy` |
-| Run-log persistence | epic | - | `cargo test -p cap --test behavior_cap_run_log_persistence` |
-| Reap allowlist policy | epic | - | `cargo test -p cap --test behavior_cap_reap_allowlist_policy` |
+- Gate: `cargo test -p cap --test behavior_cap_run_log_persistence`
+- Gate: `cargo test -p cap --test behavior_cap_unrestricted_shell`
 
 ## Why
 
-You wouldn't run 8 `cargo test`s and a `uv run pytest` in parallel by
-hand — but agents, cron loops, and IDE integrations happily do exactly
-that, and the box dies. `cap` is the throttle in front of them.
+Coding agents run many short shell commands.
+Repeated shell and process startup can cost more than the work itself.
+Cap reduces that cost with native commands and supported pipeline fusion.
+Pipeline fusion runs several command stages in one process.
 
 ## Quick start (the agent use case)
 
@@ -1006,6 +969,24 @@ Still not replaced by default:
 Use `cap explain -- <command> ...` to see whether a command will use a native
 implementation or the original command.
 
+The routing pilot covers compatible `cat`, `wc -l`, and `wc -c` calls with stdin
+or small regular files. Put `--trace-routing` before the command to write one
+JSON route record to stderr. Normal tool stdout stays unchanged. The record
+contains `tool`, `backend`, `implementation`, and a stable `reason`.
+
+```sh
+cap --trace-routing cat file
+cap --trace-routing run 'wc -l file'
+cap explain --json -- cat file
+```
+
+`tool` is `cat`, `wc-lines`, `wc-bytes`, or `null` outside the pilot. Backends
+include `c-tiny`, `c-fast`, `rust-native`, `original`, and `bash`. Entry paths can
+select different backends. For the pilot, JSON explanation reports the same
+route decision without executing the command. Other tools keep the existing
+planner explanation. Unsupported command forms use the original command or
+Bash. Native input and file errors keep their normal error and exit behavior.
+
 ## Deferred and planned direction
 
 A pass over the resource gates surfaced where the 1:1 same-name replacement
@@ -1131,7 +1112,7 @@ cap on agy            # enable just AGY globally
 cap on --print        # print the snippets, touch nothing
 cap off codex         # remove only cap's Codex hook
 cap off agy           # remove only cap's AGY hook
-cap status            # daemon capacity plus global hook state
+cap status            # optional daemon leases and global hook state
 ```
 
 `cap on` and `cap off` are idempotent and preserve unrelated hooks already in
@@ -1143,55 +1124,36 @@ When installed through `cap on`, all three agent hooks reject `rm` targets outsi
 current Git workspace (including the workspace root), ambiguous destructive
 shell forms, `find -delete`, forceful `git clean`, `git reset --hard`, and
 privileged or disk-destructive commands such as `sudo`, `dd`, `mkfs`, and
-`diskutil`. Claude/Codex also route commands through cap's throttle; AGY's
+`diskutil`. Claude/Codex also route commands through cap's optimizer; AGY's
 adapter currently uses the guard without rewriting its command. This guard applies only to agent hook calls; direct terminal
 `cap run` retains its normal shell behavior.
 
-### Fail-open by design
+### Shell fallback
 
-The hook wraps *every* Bash call, so cap must never become a single
-point of failure. If the daemon is unreachable and can't be started,
-`cap run` prints a one-line warning and **runs the command unthrottled**
-rather than failing it. A broken cap degrades to a no-op; it never wedges
-the agent.
+The hook sends Bash calls through cap's command planner.
+Supported commands use native implementations.
+Other commands use the original command or `bash -c` when shell syntax is needed.
+Command execution does not need the daemon.
 
 ## Model
 
-```
-   cap <cmd>              cap <cmd>             cap <cmd>
-       │                      │                     │
-       └──── Acquire ─────────┴──── Spawned ────────┘
-                                  │
-                                  ▼
-                            cap daemon
-                            (UDS RPC + sampler loop)
-                                  │
-               every sample_interval_ms:
-                 free = OS available memory
-                 free ≥ pause_floor              → resume oldest paused
-                 kill_floor ≤ free < pause_floor → pause (SIGSTOP) newest
-                 free < kill_floor               → kill largest victim
-                                                   (SIGTERM → grace → SIGKILL)
+```text
+agent command or terminal command
+              |
+         cap planner
+          |       |
+   supported     other command
+       |               |
+native tool      direct child process
+or pipeline      or Bash fallback
+                      |
+            explicit timeout, if set
 ```
 
-* Each `cap <cmd>` registers a **lease** with the daemon, spawns the
-  child in its own process group, and reports the PID. The daemon then
-  owns SIGSTOP / SIGCONT / SIGTERM / SIGKILL on that group.
-* Two memory floors, derived at startup from total RAM:
-  * **pause floor** — below it, SIGSTOP the newest running command (stop
-    it allocating more) and back-pressure new `cap run`s.
-  * **kill floor** — below it, pick the largest victim by RSS and
-    SIGTERM it (then SIGKILL after a grace window). After repeated ticks
-    still under the kill floor, SIGKILL every paused lease as a last
-    resort.
-* If a `cap <cmd>` client crashes, the daemon notices the UDS disconnect
-  and releases its lease automatically — no leaked budget, no orphaned
-  paused process.
-* When cap kills a command it returns a structured **kill envelope**
-  (classification + suggested next step + sibling RSS) and prints a
-  multi-line diagnostic on stderr, so the agent can tell a cap eviction
-  apart from a real test failure and decide whether to wait-and-retry or
-  change strategy.
+Cap preserves command input, output, errors, and exit status.
+External commands run without host-capacity admission checks.
+The local supervisor forwards terminal signals to the child process group.
+Only requested timeouts can stop a command through cap's own timeout path.
 
 ## Usage
 
@@ -1203,18 +1165,20 @@ cap run --label "mamba build" -- cargo build -p mamba
 cap cargo test
 cap uv run pytest
 
-# block until the box has headroom again (exit 0 = ok, 124 = timed out,
-# matching GNU `timeout`); useful in `cap wait && cargo test` idioms
-cap wait
-cap wait --timeout 120
+# optional external-command time limits
+cap run --timeout 120 -- cargo test
+cap run --idle-timeout 30 -- cargo test
 
-# daemon lifecycle (a daemon auto-starts on first `cap run`)
+# compatibility command; returns success without waiting
+cap wait
+
+# optional daemon lifecycle
 cap daemon start
 cap daemon status
 cap daemon stop
 
 # inspect
-cap status     # leases + memory/CPU headroom
+cap status     # optional daemon leases and global hook state
 cap ps         # alias of status
 cap ping
 
@@ -1233,117 +1197,61 @@ cap config show
 
 ## Config
 
-`~/.cap/config.toml` (or `$CAP_HOME/config.toml`). All keys are optional
-and fall back to the defaults shown:
+`~/.cap/config.toml` (or `$CAP_HOME/config.toml`) stores optional settings.
+`cap config init` writes the active defaults.
 
 ```toml
 [protect]
-min_free_gb                 = 2.0   # absolute free-memory floor (small-box safety net)
-pause_used_percent          = 80    # SIGSTOP-newest once RAM usage crosses this %
-kill_used_percent           = 90    # evict victims once RAM usage crosses this % (> pause)
-pause_load_percent          = 0     # CPU pause floor (% of nproc); 0 = off (see below)
-kill_grace_secs             = 3     # SIGTERM → wait → SIGKILL; 0 = SIGKILL immediately
-kill_all_paused_after_ticks = 5     # last-resort: kill all paused after N stuck ticks
-sample_interval_ms          = 500   # how often to sample memory + load
-trigger_samples             = 2     # consecutive sub-threshold samples before acting
-reap_enabled                = true  # may SIGTERM auto-restarting LSPs under kill pressure
-reap_min_uptime_secs        = 60    # min process age before it's a reap candidate
-reap_cooldown_secs          = 10    # min seconds between process-table scans
-
-[defaults]
-nice = 5    # priority bump applied to children (higher = lower priority)
+kill_grace_secs = 3       # wait after timeout SIGTERM before SIGKILL
+sample_interval_ms = 500 # timeout observation interval
+default_timeout_secs = 0 # optional daemon-client default only
+default_idle_timeout_secs = 0 # optional daemon-client default only
 
 [log]
-enabled = true    # write a per-command run log (see below); false to disable
+enabled = true           # write external-command run records
 ```
 
-The percentages auto-scale to the machine: floors are computed as
-`total_RAM * (1 - used_percent/100)`, then `max`'d against `min_free_gb`
-so a small box keeps its absolute reserve. `kill_used_percent` must be
-strictly greater than `pause_used_percent` or the daemon refuses to
-start.
-
-**CPU pause is off by default** (`pause_load_percent = 0`). The 1-minute
-load average lags real load by tens of seconds, so a sub-second control
-loop over it over-pauses — and a healthy parallel build legitimately
-drives load to ~1.0/core, which is exactly the work cap exists to let
-run. Memory is the OOM signal that matters. If you do want CPU back-off,
-set a value; it may exceed 100 (e.g. `150` = "pause once load passes
-1.5× nproc").
+The `[protect]` name remains for compatibility.
+Old memory floors, load thresholds, reap settings, and `[defaults] nice` keys
+have no effect and are omitted from new config output.
+Old `default_timeout_secs` and `default_idle_timeout_secs` settings remain
+available to daemon clients. Direct CLI runs require explicit timeout flags.
 
 ## Run log
 
-Every command that actually ran through cap is appended as one JSON line
-to `~/.cap/logs/events-YYYY-MM-DD.jsonl` (daily file, picked at write
-time so a long-lived daemon rolls over at midnight). This is the audit
-of what cap did to the agent's commands — how long each waited, how long
-it ran, how much memory it used, and whether cap had to kill it.
+External commands can append one JSON record to
+`~/.cap/logs/events-YYYY-MM-DD.jsonl` when they finish.
+Native replacements use their existing fast path and do not create these records.
+Set `[log] enabled = false` to disable the log.
+A log write failure does not change the command's exit status.
 
-```jsonc
-{
-  "ts": "2026-05-29T17:52:10.539+08:00",   // finished at
-  "started_at": "2026-05-29T17:52:10.355+08:00", // submitted to cap
-  "lease": 2,
-  "command": "cargo test -p cap",
-  "program": "cargo",
-  "cwd": "/Users/me/proj",
-  "client_pid": 75678,
-  "child_pid": 75679,
-  "queue_ms": 2,            // wait between submit and start (Acquire backpressure)
-  "duration_ms": 182,       // wall-clock run time
-  "paused_ms": 0,           // total time cap SIGSTOPped it
-  "peak_rss_gb": 1.83,      // peak leader-process RSS (see note)
-  "free_gb_at_start": 4.90, // system free memory when it started
-  "exit_code": 0,           // null if terminated by a signal (incl. cap SIGKILL)
-  "outcome": "completed",   // or "killed"
-  "kill_classification": null // "competition" | "oversize" | "external" when killed
-}
-```
-
-Notes:
-
-* Memory/free fields are sampled on the daemon's tick (`sample_interval_ms`,
-  default 500 ms). Commands that finish faster than one tick show
-  `peak_rss_gb: 0` / `free_gb_at_start: null` — they weren't observed.
-  Heavy commands (the ones worth logging) get many samples.
-* `peak_rss_gb` is the **leader** process's RSS, not the whole process
-  group — for `cargo`/`pytest` the child compilers/workers aren't summed
-  in, so treat it as a lower bound.
-* Since the hook wraps *every* Bash call, the log includes trivial
-  commands (`ls`, `cat`) too. Filter with `jq` as needed, e.g. the slow
-  ones: `jq 'select(.duration_ms > 1000)' events-*.jsonl`.
-
-Set `[log] enabled = false` to turn it off.
-
-## Reap allowlist
-
-Under kill-floor pressure cap may also SIGTERM a few **auto-restarting,
-non-lease** processes to reclaim RAM — only the hardcoded names in
-`reap::REAP_ALLOWLIST` (`rust-analyzer`, `gopls`, `clangd`, …), which the
-editor transparently relaunches. The list is not user-extensible; set
-`reap_enabled = false` to turn the behavior off entirely.
+The record keeps the existing field names for compatibility.
+`duration_ms` records elapsed run time. `paused_ms` is always zero.
+`queue_ms` records local setup time, without a capacity wait.
+Direct runs do not sample memory.
+Their memory fields are compatibility placeholders, not measured usage.
+`kill_classification` is `absolute_timeout` or `idle_timeout` when an explicit
+timeout stops the command. Memory competition no longer produces a kill record.
 
 ## Upgrading
 
-The daemon is a long-lived process holding an exclusive lock, so an old
-daemon keeps running after you replace the binary. After upgrading cap,
-restart it so clients and daemon speak the same protocol:
+New `cap run` commands bypass an old running daemon.
+After replacing the binaries, stop an old daemon so any library clients can
+start the new daemon with the updated policy:
 
 ```bash
-cap daemon stop      # next `cap run` auto-spawns the new one
+cap daemon stop
 ```
+
+Commands already registered with an old daemon remain under that daemon's policy
+until it stops. This change does not alter a process that is already running.
 
 ## Status / limitations
 
-* Memory protection is the mature path (two floors, grace-period kill,
-  last-resort eviction, structured kill envelopes). CPU pause is
-  opt-in and coarse (see above).
-* No live RSS→config promotion or per-command memory profiles yet.
-* Memory floors are derived once at daemon start; changing `[protect]`
-  requires a `cap daemon stop`.
-* Same-name command replacement is the early model; marginal single-command
-  gates (e.g. `cat`) are being retired toward native passthrough, and the next
-  real win is resident light-shell pipeline fusion with dynamic Bash fallback — see
-  [Deferred and planned direction](#deferred-and-planned-direction).
-</content>
-</invoke>
+- Cap does not provide memory or CPU resource protection.
+- Explicit timeout flags apply to external commands. Native replacements keep
+  their existing execution path.
+- `cap status` lists daemon leases. It does not list normal direct commands.
+- Unsupported command shapes keep shell fallback.
+- The next efficiency work is resident light-shell pipeline fusion with dynamic
+  Bash fallback. See [Deferred and planned direction](#deferred-and-planned-direction).

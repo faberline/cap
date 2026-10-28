@@ -5,143 +5,94 @@ use serde::{Deserialize, Serialize};
 
 use crate::paths;
 
-/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub protect: Protect,
-    #[serde(default)]
+    /// Legacy priority settings are accepted but no longer applied or emitted.
+    #[serde(default, skip_serializing)]
     pub defaults: Defaults,
     #[serde(default)]
     pub log: Log,
 }
 
-/// @spec tech-design/semantic/cap-src.md#schema
+/// Timeout settings and parse-only compatibility for retired resource policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Protect {
-    /// Absolute floor for available memory (GB). Safety net for small
-    /// machines — `max`'d against the derived percentage floors below.
+    /// Retired memory floor. Accepted for compatibility; ignored at runtime.
+    #[serde(skip_serializing)]
     pub min_free_gb: f64,
-    /// Memory pause floor as a percentage of total RAM in use
-    /// (0..=100). Translated at daemon start to
-    /// `pause_floor_gb = max(min_free_gb, total * (1 - pause_used_percent/100))`.
-    /// Crossing this triggers SIGSTOP-newest and Acquire backpressure.
-    /// Backward-compatible alias `max_used_percent` is accepted in
-    /// existing config files.
-    #[serde(alias = "max_used_percent")]
+    /// Retired pause threshold. The old key is also accepted.
+    #[serde(alias = "max_used_percent", skip_serializing)]
     pub pause_used_percent: u32,
-    /// Memory kill floor as a percentage of total RAM in use
-    /// (0..=100). Translated at daemon start to
-    /// `kill_floor_gb = max(min_free_gb, total * (1 - kill_used_percent/100))`.
-    /// Crossing this triggers victim selection + SIGTERM/SIGKILL.
-    /// Must be strictly greater than `pause_used_percent`.
+    /// Retired kill threshold. Ignored at runtime.
+    #[serde(skip_serializing)]
     pub kill_used_percent: u32,
-    /// CPU pause floor as a percentage of nproc. Triggers SIGSTOP-newest
-    /// (and Acquire backpressure) when
-    /// `loadavg_1m > nproc * pause_load_percent/100`. CPU has no kill
-    /// threshold (SIGSTOP fully releases CPU).
-    ///
-    /// Default 0 = **disabled**. loadavg(1m) lags the real instantaneous
-    /// load by tens of seconds, so a sub-second control loop over it
-    /// over-pauses, and a healthy parallel build legitimately drives
-    /// load to ~1.0/core — exactly the work cap exists to let run. Memory
-    /// is the OOM signal; CPU pause is opt-in. Values may exceed 100
-    /// (e.g. 150 = "pause once load passes 1.5x nproc") since load
-    /// routinely runs above core count on a busy box.
+    /// Retired CPU pause threshold. Ignored at runtime.
+    #[serde(skip_serializing)]
     pub pause_load_percent: u32,
-    /// SIGTERM-to-SIGKILL grace window. cap sends SIGTERM to the lease
-    /// leader first; if still alive after this many seconds, SIGKILL the
-    /// whole process group. Set 0 to skip SIGTERM and SIGKILL immediately.
+    /// Grace in seconds after an explicit timeout sends SIGTERM.
+    /// Zero sends SIGKILL to the process group immediately.
     pub kill_grace_secs: u64,
-    /// Last-resort eviction: if still below the kill floor for this many
-    /// consecutive ticks after a victim kill, SIGKILL every paused lease.
+    /// Retired pressure eviction setting. Ignored at runtime.
+    #[serde(skip_serializing)]
     pub kill_all_paused_after_ticks: u32,
-    /// How often (ms) to sample system memory and load.
+    /// Interval in milliseconds between timeout checks and optional telemetry.
     pub sample_interval_ms: u64,
-    /// How many consecutive sub-threshold samples must pass before
-    /// pausing/killing. Prevents reacting to a single noisy reading.
+    /// Retired pressure debounce setting. Ignored at runtime.
+    #[serde(skip_serializing)]
     pub trigger_samples: u32,
-    /// When under kill-floor pressure, may cap SIGTERM known
-    /// auto-restarting non-lease processes (LSPs etc., see
-    /// `reap::REAP_ALLOWLIST`)? Default: true. Set false to keep cap
-    /// strictly hands-off non-lease processes.
+    /// Retired process reaping setting. Ignored even if an old file enables it.
+    #[serde(skip_serializing)]
     pub reap_enabled: bool,
-    /// Minimum process uptime (seconds) before a reap candidate is
-    /// eligible. Prevents cascade-kill loops with IDE-restarted LSPs:
-    /// editor relaunches the LSP, cap waits this long before
-    /// considering it again. Default: 60.
+    /// Retired process reaping setting. Ignored at runtime.
+    #[serde(skip_serializing)]
     pub reap_min_uptime_secs: u64,
-    /// How often (seconds) the reap path is allowed to fire. The
-    /// process-table scan is the only expensive call cap makes; this
-    /// debounce keeps a sustained low-memory state from re-scanning
-    /// every tick. Default: 10.
+    /// Retired process reaping setting. Ignored at runtime.
+    #[serde(skip_serializing)]
     pub reap_cooldown_secs: u64,
-    /// Absolute wall-clock budget (seconds) applied when `cap run`
-    /// didn't pass `--timeout`. `0` = disabled (default) — existing
-    /// behavior is unchanged unless a caller opts in.
+    /// Default absolute timeout in seconds. Zero disables it.
     pub default_timeout_secs: u64,
-    /// Idle (no-CPU-progress) budget (seconds) applied when `cap run`
-    /// didn't pass `--idle-timeout`. `0` = disabled (default).
+    /// Default idle timeout in seconds. Zero disables it.
     pub default_idle_timeout_secs: u64,
 }
 
-/// @spec tech-design/semantic/cap-src.md#schema
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Defaults {
-    /// Priority bump applied to children (higher = lower priority).
+    /// Retired priority setting. Commands always inherit caller priority.
+    #[serde(skip_serializing)]
     pub nice: i32,
 }
 
-/// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Log {
-    /// Write a structured record of every command that ran through cap
-    /// to `~/.cap/logs/events-YYYY-MM-DD.jsonl` (one JSON object per
-    /// line). Set false to disable run logging entirely.
+    /// Append completed external command records to the daily JSONL run log.
     pub enabled: bool,
 }
 
-/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for Protect {
     fn default() -> Self {
-        // 80% used = pause (back-pressure new submissions, SIGSTOP-newest).
-        // 90% used = kill (victim eviction). Percentages auto-scale to
-        // machine size; 2 GB absolute floor keeps small (≤10 GB) boxes
-        // safe regardless of the percentage math.
         Self {
-            min_free_gb: 2.0,
-            pause_used_percent: 80,
-            kill_used_percent: 90,
-            // CPU pause off by default — see field doc. Memory is the
-            // protection that matters; loadavg is too laggy for a
-            // 500 ms loop and would throttle the agent's own builds.
+            min_free_gb: 0.0,
+            pause_used_percent: 0,
+            kill_used_percent: 0,
             pause_load_percent: 0,
             kill_grace_secs: 3,
-            kill_all_paused_after_ticks: 5,
+            kill_all_paused_after_ticks: 0,
             sample_interval_ms: 500,
-            trigger_samples: 2,
-            reap_enabled: true,
-            reap_min_uptime_secs: 60,
-            reap_cooldown_secs: 10,
-            // Both wall-clock triggers ship off by default — see field
-            // docs. Opt-in per `cap run --timeout`/`--idle-timeout` or
-            // by raising these in config.toml.
+            trigger_samples: 0,
+            reap_enabled: false,
+            reap_min_uptime_secs: 0,
+            reap_cooldown_secs: 0,
             default_timeout_secs: 0,
             default_idle_timeout_secs: 0,
         }
     }
 }
 
-/// @spec tech-design/semantic/cap-src.md#schema
-impl Default for Defaults {
-    fn default() -> Self {
-        Self { nice: 5 }
-    }
-}
-
-/// @spec tech-design/semantic/cap-src.md#schema
 impl Default for Log {
     fn default() -> Self {
         Self { enabled: true }
@@ -176,111 +127,83 @@ mod tests {
     use super::*;
 
     #[test]
-    fn defaults_are_safe_and_ordered() {
-        let p = Protect::default();
-        assert!(
-            p.kill_used_percent > p.pause_used_percent,
-            "kill floor must trigger AFTER pause floor (kill_used_percent > pause_used_percent)"
-        );
-        assert!(p.pause_used_percent <= 100 && p.kill_used_percent <= 100);
-        assert!(p.min_free_gb > 0.0);
-        assert_eq!(
-            p.default_timeout_secs, 0,
-            "absolute timeout must default to disabled"
-        );
-        assert_eq!(
-            p.default_idle_timeout_secs, 0,
-            "idle timeout must default to disabled"
-        );
+    fn resource_controls_and_timeouts_are_disabled_by_default() {
+        let cfg = Config::default();
+        assert_eq!(cfg.protect.default_timeout_secs, 0);
+        assert_eq!(cfg.protect.default_idle_timeout_secs, 0);
+        assert!(!cfg.protect.reap_enabled);
+        assert_eq!(cfg.defaults.nice, 0);
     }
 
     #[test]
-    fn legacy_max_used_percent_alias_accepted() {
-        // Existing user configs only have `max_used_percent` — the
-        // serde alias must accept it as `pause_used_percent`.
-        let toml = r#"
-            min_free_gb = 1.5
-            max_used_percent = 70
-            kill_used_percent = 85
-            pause_load_percent = 75
-            kill_grace_secs = 5
-            kill_all_paused_after_ticks = 3
-            sample_interval_ms = 200
-            trigger_samples = 4
-        "#;
-        let cfg: Config = toml::from_str(&format!("[protect]\n{toml}")).unwrap();
-        assert_eq!(cfg.protect.pause_used_percent, 70);
-        assert_eq!(cfg.protect.kill_used_percent, 85);
-        assert_eq!(cfg.protect.min_free_gb, 1.5);
-    }
-
-    #[test]
-    fn new_pause_used_percent_key_accepted() {
-        let toml = r#"
-            min_free_gb = 1.5
-            pause_used_percent = 70
-            kill_used_percent = 85
-            pause_load_percent = 75
-            kill_grace_secs = 5
-            kill_all_paused_after_ticks = 3
-            sample_interval_ms = 200
-            trigger_samples = 4
-        "#;
-        let cfg: Config = toml::from_str(&format!("[protect]\n{toml}")).unwrap();
-        assert_eq!(cfg.protect.pause_used_percent, 70);
-    }
-
-    #[test]
-    fn empty_protect_section_uses_defaults() {
-        let cfg: Config = toml::from_str("[protect]\n").unwrap();
-        let d = Protect::default();
-        assert_eq!(cfg.protect.pause_used_percent, d.pause_used_percent);
-        assert_eq!(cfg.protect.kill_used_percent, d.kill_used_percent);
-        assert_eq!(cfg.protect.kill_grace_secs, d.kill_grace_secs);
-    }
-
-    #[test]
-    fn legacy_only_falls_back_to_default_kill_floor() {
-        // Realistic upgrade scenario: existing config has only
-        // `max_used_percent`; `kill_used_percent` must take its default.
+    fn legacy_resource_config_is_readable_but_not_advertised() {
         let cfg: Config = toml::from_str(
             r#"
             [protect]
-            min_free_gb = 2.0
+            min_free_gb = 99999.0
             max_used_percent = 80
-            sample_interval_ms = 500
-            trigger_samples = 2
+            kill_used_percent = 10
+            pause_load_percent = 1
+            reap_enabled = true
+            trigger_samples = 1
+            kill_all_paused_after_ticks = 1
+            reap_min_uptime_secs = 1
+            reap_cooldown_secs = 1
+            [defaults]
+            nice = 19
         "#,
         )
         .unwrap();
+        assert_eq!(cfg.protect.min_free_gb, 99999.0);
         assert_eq!(cfg.protect.pause_used_percent, 80);
-        assert_eq!(cfg.protect.kill_used_percent, 90); // default
+        assert_eq!(cfg.defaults.nice, 19);
+        let output = toml::to_string(&cfg).unwrap();
+        for retired in [
+            "min_free_gb",
+            "max_used_percent",
+            "pause_used_percent",
+            "kill_used_percent",
+            "pause_load_percent",
+            "reap_enabled",
+            "trigger_samples",
+            "kill_all_paused_after_ticks",
+            "reap_min_uptime_secs",
+            "reap_cooldown_secs",
+            "defaults",
+            "nice",
+        ] {
+            assert!(
+                !output.contains(retired),
+                "retired setting {retired} must not be emitted: {output}"
+            );
+        }
+        assert!(output.contains("default_timeout_secs = 0"));
+        assert!(output.contains("kill_grace_secs = 3"));
     }
 
     #[test]
-    fn round_trip_serialize_deserialize() {
-        let original = Protect::default();
-        let text = toml::to_string(&Config {
-            protect: original.clone(),
-            defaults: Defaults::default(),
-            log: Log::default(),
-        })
-        .unwrap();
+    fn timeout_and_log_settings_round_trip() {
+        let mut original = Config::default();
+        original.protect.default_timeout_secs = 30;
+        original.protect.default_idle_timeout_secs = 10;
+        original.protect.kill_grace_secs = 2;
+        original.protect.sample_interval_ms = 100;
+        original.log.enabled = false;
+        let text = toml::to_string(&original).unwrap();
         let parsed: Config = toml::from_str(&text).unwrap();
-        assert_eq!(
-            parsed.protect.pause_used_percent,
-            original.pause_used_percent
-        );
-        assert_eq!(parsed.protect.kill_used_percent, original.kill_used_percent);
-        assert_eq!(parsed.protect.kill_grace_secs, original.kill_grace_secs);
-        assert_eq!(
-            parsed.protect.pause_load_percent,
-            original.pause_load_percent
-        );
-        assert_eq!(
-            parsed.protect.kill_all_paused_after_ticks,
-            original.kill_all_paused_after_ticks
-        );
+        assert_eq!(parsed.protect.default_timeout_secs, 30);
+        assert_eq!(parsed.protect.default_idle_timeout_secs, 10);
+        assert_eq!(parsed.protect.kill_grace_secs, 2);
+        assert_eq!(parsed.protect.sample_interval_ms, 100);
+        assert!(!parsed.log.enabled);
+    }
+
+    #[test]
+    fn empty_legacy_sections_use_current_defaults() {
+        let cfg: Config = toml::from_str("[protect]\n[defaults]\n").unwrap();
+        assert!(!cfg.protect.reap_enabled);
+        assert_eq!(cfg.defaults.nice, 0);
+        assert_eq!(cfg.protect.sample_interval_ms, 500);
     }
 }
 // CODEGEN-END

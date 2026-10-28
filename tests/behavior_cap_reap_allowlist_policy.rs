@@ -7,24 +7,17 @@
 // @contract reap-allowlist-policy
 // @category behavior
 // @required_for_production true
-// @command cargo test -p cap --lib reap -- --nocapture
+// @command cargo test -p cap --test behavior_cap_unrestricted_shell
 // AW-EC-END
 
-// Contract: reap allowlist policy stays bounded
-// Contract: active cap leases are excluded from reap actions
+// Contract: cap never reaps other processes for memory pressure
+// Contract: legacy reap settings cannot enable process reaping
 #[test]
-#[ignore = "AW EC gate: run via `aw health --verify-ec` or `cargo test -- --ignored`"]
+#[ignore = "Nested Cargo gate: run this contract with --ignored"]
 fn cap_reap_allowlist_policy() {
-    let command = "cargo test -p cap --lib reap -- --nocapture";
+    let command = "cargo test -p cap --test behavior_cap_unrestricted_shell";
     let id = "cap-reap-allowlist-policy";
-    let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    while !root.join(".aw").is_dir() {
-        assert!(
-            root.pop(),
-            "AW EC {id}: no .aw/ project root above {}",
-            env!("CARGO_MANIFEST_DIR")
-        );
-    }
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let output = std::process::Command::new("sh")
         .arg("-c")
         .arg(command)

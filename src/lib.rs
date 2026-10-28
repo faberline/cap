@@ -1,31 +1,20 @@
 // SPEC-MANAGED: tech-design/semantic/cap-src.md#exports
 // CODEGEN-BEGIN
-//! cap — local resource-protection daemon + CLI wrapper.
+//! cap — efficient shell tools with native command and pipeline execution.
 //!
-//! Goal: stop heavy commands (`cargo test`, `uv run`, ...) from eating
-//! the whole machine. NOT about environment isolation — only about
-//! live memory pressure.
+//! Supported commands use native implementations. Other commands run directly
+//! with their original arguments or fall back to Bash.
 //!
 //! Architecture:
 //!
 //! ```text
-//!   cap <cmd>              cap <cmd>             cap <cmd>
-//!       │                      │                     │
-//!       └──── Acquire ─────────┴──── Spawned ────────┘
-//!                                  │
-//!                                  ▼
-//!                            cap daemon
-//!                            (UDS RPC + sampler loop)
-//!                                  │
-//!               every sample_interval_ms:
-//!                 free = OS available_memory()
-//!                 free ≥ floor  → SIGCONT oldest paused
-//!                 free < floor  → SIGSTOP newest running
-//!                 only one left → SIGKILL it
+//!   cap <cmd> → command planner → native implementation
+//!                              → direct command / Bash fallback
 //! ```
 //!
-//! No declared budgets. No per-command estimates. The OS's idea of
-//! "free memory" is the only input.
+//! No memory or CPU limits. No automatic priority changes or process reaping.
+//! Explicit timeouts, signal forwarding, and command logs use local supervision.
+//! The daemon API remains available for compatibility.
 
 // Client-side primitives live in this crate so the daemon, CLI, and any cap
 // library consumers share the same wire protocol, state paths, and supervised
@@ -45,10 +34,10 @@ pub mod hook_install;
 pub mod managed_run;
 pub mod paths;
 pub mod protocol;
-pub mod reap;
 pub mod resident_shell;
 pub mod sampler;
 pub mod session_queue;
 pub mod supervisor;
 pub mod throttle;
+pub mod tool_routing;
 // CODEGEN-END

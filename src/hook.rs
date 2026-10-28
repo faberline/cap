@@ -239,7 +239,7 @@ fn hook_specific_for_rewrite(agent: HookAgent, rewrite: ModifiedInput) -> HookSp
         modified_input,
         updated_input,
         permission_decision_reason: Some(
-            "wrapped with cap so the daemon can throttle under memory pressure".into(),
+            "wrapped with cap for efficient shell command execution".into(),
         ),
     }
 }

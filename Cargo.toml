@@ -46,7 +46,7 @@ version = "0.4.3"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "cap — local resource-protection daemon + CLI wrapper for heavy commands (cargo test, uv run, ...)"
+description = "cap — efficient shell commands and pipelines for coding agents"
 
 [features]
 default = ["release"]

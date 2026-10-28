@@ -9,7 +9,7 @@
 //!   cap run "<bash command>"       # string command entrypoint for hooks
 //!   cap explain -- <cmd> [args...] # show command replacement decision
 //!   cap daemon start|stop|status|run
-//!   cap status                    # leases + memory pressure
+//!   cap status                    # compatibility daemon + agent hooks
 //!   cap ps                        # alias
 //!   cap config show|init          # `config init` writes ~/.cap/config.toml
 //!   cap ping
@@ -20,7 +20,7 @@
 
 use std::process::ExitCode;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 use crate::client::Client;
@@ -29,7 +29,9 @@ use crate::config::Config;
 use crate::daemon;
 use crate::hook_install;
 use crate::protocol::{LeaseState, Request, Response};
-use crate::resident_shell::{ResidentLightShellRun, ResidentLightShellSession};
+use crate::resident_shell::{
+    ResidentLightShellPlan, ResidentLightShellRun, ResidentLightShellSession,
+};
 use crate::session_queue::{self, QueueDecision};
 use crate::supervisor::SpawnSpec;
 
@@ -49,16 +51,15 @@ const LLM_TOPICS: &[cli_std::llm::Topic] = &[
         body: "\
 # cap workflow
 
-cap protects the local machine from agent-launched command storms. Start with
+cap runs shell tools efficiently. Start with
 `cap on` installs global hooks for Claude Code, Codex CLI, and AGY. Claude and
 Codex Bash commands are rewritten to `cap run '<original command>'`; the AGY
 hook currently supplies the same destructive-command guard for `run_command`.
-cap then decides whether a wrapped command runs under a daemon lease, a
-resident native fast path, a session queue barrier, or Bash fallback.
+cap then chooses a native fast path, a session queue barrier, or direct Bash
+fallback. Commands do not need a daemon or wait for memory or CPU capacity.
 
-Use `cap status`, `cap ps`, and `cap wait` to inspect or wait for host
-capacity. Use `cap explain -- <command>` to see whether a command can use a
-native replacement.",
+Use `cap status` to inspect agent hooks and the compatibility daemon.
+Use `cap explain -- <command>` to inspect a native replacement decision.",
     },
     cli_std::llm::Topic {
         id: "commands",
@@ -74,8 +75,7 @@ native replacement.",
 | wrap one command string | `cap run 'cargo test -p cap'` |
 | wrap argv directly | `cap run -- cargo test -p cap` |
 | inspect replacement decision | `cap explain -- find . -type f` |
-| show leases, pressure, and agent hooks | `cap status` |
-| wait for headroom | `cap wait --timeout 30` |
+| show compatibility daemon and agent hooks | `cap status` |
 | search cap issues | `cap issue search queue` |
 | file a diagnostics issue | `cap issue create --title 'cap: ...' ...` |",
     },
@@ -85,11 +85,10 @@ native replacement.",
         body: "\
 # cap boundaries
 
-cap is a resource governor and optimizer boundary. It is not a sandbox, chroot,
-container, environment manager, or full replacement shell. Unsupported shell
-syntax must fall back to Bash, and unknown or risky command strings stay on the
-existing synchronous managed-run path unless a profile explicitly enables an
-optimization.",
+cap optimizes supported shell commands while preserving their behavior.
+Unsupported shell syntax falls back to Bash. cap does not set memory or CPU
+limits, change process priority, or stop other tools. Only explicit timeout
+flags can stop a command. cap is not a full replacement shell.",
     },
 ];
 
@@ -97,11 +96,14 @@ optimization.",
 #[command(
     name = "cap",
     version,
-    about = "Live-throttling wrapper for heavy local commands",
+    about = "Efficient shell tools with native command and pipeline execution",
     trailing_var_arg = true
 )]
 /// @spec tech-design/semantic/cap-src.md#schema
 pub struct Cli {
+    /// Emit the selected command route as one JSON line on stderr.
+    #[arg(long)]
+    pub trace_routing: bool,
     #[command(subcommand)]
     pub command: Option<Cmd>,
 
@@ -135,7 +137,7 @@ pub enum Cmd {
         #[command(subcommand)]
         action: DaemonCmd,
     },
-    /// Print leases, memory pressure, and agent hook status.
+    /// Print compatibility daemon leases and agent hook status.
     Status,
     /// Alias of `status`.
     Ps,
@@ -146,12 +148,9 @@ pub enum Cmd {
     },
     /// Liveness probe.
     Ping,
-    /// Block until system memory/CPU headroom recovers above the pause
-    /// floor. Exit 0 = capacity OK, exit 124 = timed out (matches GNU
-    /// `timeout`'s convention). The daemon caps wait time at 5 min
-    /// server-side regardless of `--timeout`.
+    /// Compatibility command. Return success immediately.
     Wait {
-        /// Maximum seconds to wait. Default: server cap (5 min).
+        /// Accepted for compatibility; no capacity wait is performed.
         #[arg(long)]
         timeout: Option<u64>,
     },
@@ -159,7 +158,7 @@ pub enum Cmd {
     ///
     /// With no arguments, installs globally into Claude Code, Codex CLI,
     /// and AGY. Cap never installs project-local hooks: every agent receives
-    /// the same machine-level protection. Pass an agent name to narrow it
+    /// the same shell-tool routing. Pass an agent name to narrow it
     /// (`cap on claude`) or `--print` to preview without writing anything.
     On {
         /// Print the snippet(s) to stdout and exit; do not modify files.
@@ -281,15 +280,12 @@ pub struct RunArgs {
     /// Human-readable label shown in `cap status`.
     #[arg(long)]
     pub label: Option<String>,
-    /// Absolute wall-clock budget in seconds; SIGTERM→grace→SIGKILL
-    /// the lease once exceeded (excluding time spent paused). Omit to
-    /// use the daemon's `default_timeout_secs` (0 = disabled).
+    /// Stop an external command after this many seconds. Default: disabled.
+    /// Send SIGTERM, then SIGKILL after the configured grace period.
     #[arg(long)]
     pub timeout: Option<u64>,
-    /// Kill the lease if it makes no CPU progress for this many
-    /// seconds (excluding time spent paused) — catches hangs that
-    /// stay under the memory/CPU pressure floors. Omit to use the
-    /// daemon's `default_idle_timeout_secs` (0 = disabled).
+    /// Stop an external command after this many seconds without CPU progress.
+    /// Default: disabled.
     #[arg(long)]
     pub idle_timeout: Option<u64>,
     /// The command to run. Pass argv after `--`, or one Bash command string.
@@ -300,6 +296,9 @@ pub struct RunArgs {
 /// @spec tech-design/semantic/cap-src.md#schema
 #[derive(Parser, Debug)]
 pub struct ExplainArgs {
+    /// Print a structured route without executing the command.
+    #[arg(long)]
+    pub json: bool,
     /// The command to explain, after `--`.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     pub command: Vec<String>,
@@ -362,6 +361,7 @@ pub enum AgentArg {
 pub async fn run() -> Result<ExitCode> {
     init_tracing();
     let cli = Cli::parse();
+    crate::tool_routing::set_trace(cli.trace_routing);
 
     match cli.command {
         Some(Cmd::Llm(args)) => handle_llm(args),
@@ -508,16 +508,27 @@ fn handle_explain(args: ExplainArgs) -> Result<ExitCode> {
         anyhow::bail!("nothing to explain; usage: cap explain -- <command> [args...]");
     }
     let plan = if args.command.len() == 1 {
-        command_planner::plan_shell(&args.command[0], None)
+        match ResidentLightShellSession::capture().plan_command_string(&args.command[0], None) {
+            ResidentLightShellPlan::Native(plan) => CommandPlan::Native(plan),
+            ResidentLightShellPlan::BashFallback(plan) => CommandPlan::External(plan),
+        }
     } else {
         command_planner::plan(&args.command, None)
     };
-    println!("{}", plan.explain());
+    if args.json {
+        println!(
+            "{}",
+            serde_json::to_string(&crate::tool_routing::plan(&plan))?
+        );
+    } else {
+        println!("{}", plan.explain());
+    }
     Ok(ExitCode::SUCCESS)
 }
 
 fn init_tracing() {
     let _ = tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
         .with_max_level(match std::env::var("CAP_LOG").as_deref() {
             Ok("trace") => tracing::Level::TRACE,
             Ok("debug") => tracing::Level::DEBUG,
@@ -573,6 +584,7 @@ async fn handle_daemon(action: DaemonCmd) -> Result<ExitCode> {
 }
 
 async fn handle_status() -> Result<ExitCode> {
+    println!("cap: efficient shell tools; resource limits disabled");
     let mut client = match Client::connect().await {
         Ok(c) => c,
         Err(_) => {
@@ -587,15 +599,8 @@ async fn handle_status() -> Result<ExitCode> {
         return Ok(ExitCode::FAILURE);
     };
     println!(
-        "free {free:.2} GB  (pause<{pause:.2} GB, kill<{kill:.2} GB)   \
-         load/core {load:.2}  (pause>{lp:.2})   running {r}  paused {p}",
-        free = snap.free_mem_gb,
-        pause = snap.pause_floor_gb,
-        kill = snap.kill_floor_gb,
-        load = snap.load_per_core,
-        lp = snap.load_pause_floor,
+        "compatibility daemon: running {r} leases (direct shell commands run locally)",
         r = snap.running,
-        p = snap.paused,
     );
     for l in &snap.leases {
         let state = match l.state {
@@ -714,30 +719,8 @@ async fn handle_ping() -> Result<ExitCode> {
     Ok(ExitCode::SUCCESS)
 }
 
-/// Exit code 124 matches GNU `timeout`'s convention so existing shell
-/// idioms like `cap wait --timeout 30 && cargo test` work without
-/// special-casing.
-const WAIT_TIMEOUT_EXIT: u8 = 124;
-
-async fn handle_wait(timeout: Option<u64>) -> Result<ExitCode> {
-    let mut client = Client::connect_or_launch(|| daemon::spawn_background().map(|_| ())).await?;
-    let resp = client
-        .request(&Request::WaitForCapacity {
-            timeout_secs: timeout,
-        })
-        .await?;
-    match resp {
-        Response::CapacityOk => Ok(ExitCode::SUCCESS),
-        Response::CapacityTimeout => Ok(ExitCode::from(WAIT_TIMEOUT_EXIT)),
-        Response::Error { message } => {
-            eprintln!("cap wait: {message}");
-            Ok(ExitCode::FAILURE)
-        }
-        other => {
-            eprintln!("cap wait: unexpected response: {other:?}");
-            Ok(ExitCode::FAILURE)
-        }
-    }
+async fn handle_wait(_timeout: Option<u64>) -> Result<ExitCode> {
+    Ok(ExitCode::SUCCESS)
 }
 
 /// Forward SIGINT / SIGTERM / SIGHUP from this process to the child's
@@ -784,24 +767,8 @@ async fn handle_external_run(
     timeout_secs: Option<u64>,
     idle_timeout_secs: Option<u64>,
 ) -> Result<ExitCode> {
-    // The hook wraps EVERY agent Bash call in `cap`, so a broken or
-    // unreachable daemon must degrade to "run it unthrottled" — never
-    // to "the agent can't run anything". If we can't reach/spawn the
-    // daemon, run the command directly and return its exit code.
-    let mut client =
-        match Client::connect_or_launch(|| daemon::spawn_background().map(|_| ())).await {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("cap: daemon unavailable ({e:#}); running unthrottled");
-                return run_unmanaged(&plan.program, &plan.args).await;
-            }
-        };
-
-    // The lease dance (Acquire → spawn → Spawned → wait → Release) lives in
-    // managed_run. If the daemon killed the child, surface the reason on stderr
-    // so the agent knows it wasn't a real failure.
-    let outcome = crate::managed_run::managed_run(
-        &mut client,
+    crate::tool_routing::trace(&crate::tool_routing::external(&plan));
+    let outcome = crate::managed_run::run_direct(
         SpawnSpec::new(plan.program, plan.args),
         plan.label,
         timeout_secs,
@@ -814,23 +781,6 @@ async fn handle_external_run(
         eprint!("{}", envelope.human_message);
     }
     Ok(exit_code_from(outcome.status))
-}
-
-/// Fallback path when the cap daemon is unreachable: run the command
-/// directly with inherited stdio and no throttling, so a broken cap
-/// never wedges the caller. No process-group remap and no `nice` bump —
-/// the command behaves exactly as if `cap` weren't in front of it.
-async fn run_unmanaged(program: &str, args: &[String]) -> Result<ExitCode> {
-    use std::process::Stdio;
-    let status = tokio::process::Command::new(program)
-        .args(args)
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .status()
-        .await
-        .with_context(|| format!("spawning {program}"))?;
-    Ok(exit_code_from(status))
 }
 
 /// Map a child's `ExitStatus` to a process `ExitCode`. Signal-terminated
@@ -847,6 +797,20 @@ fn exit_code_from(status: std::process::ExitStatus) -> ExitCode {
 mod tests {
     use super::*;
     use clap::CommandFactory;
+
+    #[test]
+    fn tool_routing_root_trace_flag_preserves_child_argv() {
+        let cli = Cli::try_parse_from([
+            "cap",
+            "--trace-routing",
+            "sh",
+            "-c",
+            "exit 127",
+            "--trace-routing",
+        ])
+        .expect("the root trace flag must be accepted");
+        assert_eq!(cli.passthrough, ["sh", "-c", "exit 127", "--trace-routing"]);
+    }
 
     #[test]
     fn cli_std_convention_help_lists_current_commands_and_compat_alias() {

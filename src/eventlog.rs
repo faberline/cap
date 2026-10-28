@@ -2,8 +2,8 @@
 // CODEGEN-BEGIN
 //! Per-command run log.
 //!
-//! Every command that actually ran through cap (reached the `Spawned`
-//! stage) gets one JSON line appended to
+//! Each locally supervised or daemon-managed external command can append one
+//! JSON line to
 //! `~/.cap/logs/events-YYYY-MM-DD.jsonl` when it finishes. The daily
 //! file is chosen at write time, so a long-lived daemon rolls over at
 //! midnight without any explicit rotation step.
@@ -40,12 +40,11 @@ pub struct RunRecord {
     pub cwd: String,
     pub client_pid: i32,
     pub child_pid: Option<i32>,
-    /// Time the command waited between submission and actually starting
-    /// — i.e. how long cap's Acquire backpressure held it back.
+    /// Time between command registration and local process setup.
     pub queue_ms: u64,
     /// Wall-clock run time from spawn to exit.
     pub duration_ms: u64,
-    /// Total time the command spent SIGSTOPped by cap during its run.
+    /// Retired pause metric, kept for schema compatibility. Always zero.
     pub paused_ms: u64,
     /// Peak resident memory of the lease *leader* process observed
     /// across the run. NOTE: leader only, not the whole process group —
@@ -57,8 +56,7 @@ pub struct RunRecord {
     /// Child exit code, or null if it was terminated by a signal
     /// (including a cap SIGKILL).
     pub exit_code: Option<i32>,
-    /// `"completed"` if the command exited on its own, `"killed"` if cap
-    /// evicted it under memory pressure.
+    /// `"completed"` if the command exited on its own, `"killed"` on timeout.
     pub outcome: &'static str,
     /// Why cap killed it, when `outcome == "killed"`.
     pub kill_classification: Option<KillClassification>,
@@ -85,14 +83,14 @@ impl EventLog {
         }
     }
 
-    /// Best-effort append. Logs a warning on failure but never returns
+    /// Best-effort append. Logs a debug diagnostic on failure but never returns
     /// an error — run logging must not be able to fail a command.
     pub fn append(&self, rec: &RunRecord) {
         if !self.enabled {
             return;
         }
         if let Err(e) = self.try_append(rec) {
-            tracing::warn!(error = %e, "failed to write run log");
+            tracing::debug!(error = %e, "failed to write run log");
         }
     }
 

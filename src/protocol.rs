@@ -17,19 +17,16 @@ pub type LeaseId = u64;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Request {
-    /// Register intent to run a command. Daemon assigns a lease id
-    /// and returns immediately — no admission gate up-front. Live
-    /// throttling kicks in once the child PID is known.
+    /// Register a compatibility daemon lease without admission limits.
     Acquire(AcquireRequest),
-    /// Client has spawned the child; daemon now knows what to
-    /// SIGSTOP / SIGCONT / SIGKILL when pressure changes.
+    /// Client has spawned the child; register its PID for timeout handling.
     Spawned { lease: LeaseId, child_pid: i32 },
     /// Child has exited.
     Release {
         lease: LeaseId,
         exit_code: Option<i32>,
     },
-    /// `cap status` — snapshot of leases + pressure.
+    /// `cap status` — snapshot of compatibility daemon leases.
     Status,
     /// `cap ps` — alias of status.
     Ps,
@@ -37,11 +34,7 @@ pub enum Request {
     Shutdown,
     /// `cap ping` — health probe.
     Ping,
-    /// `cap wait [--timeout N]` — block until system headroom recovers
-    /// above both the memory pause floor AND the CPU load pause floor.
-    /// The daemon caps wait time at 5 min server-side regardless of
-    /// what the client sent. `timeout_secs = None` lets the server cap
-    /// apply; `Some(0)` is treated as "non-blocking probe".
+    /// Compatibility request. Always returns CapacityOk immediately.
     WaitForCapacity { timeout_secs: Option<u64> },
 }
 
@@ -75,12 +68,7 @@ pub enum Response {
     Lease { lease: LeaseId, nice: i32 },
     /// Spawned acknowledged.
     SpawnedAck,
-    /// Release acknowledged. `kill_envelope` is set iff the daemon
-    /// SIGKILLed the child due to memory pressure. The envelope is a
-    /// structured replacement for the legacy single-string reason —
-    /// agents read `classification` + `action` to decide whether to
-    /// wait-and-retry or change strategy, and `human_message` for the
-    /// rendered diagnostic.
+    /// Release acknowledged. A timeout can supply a structured diagnostic.
     Released {
         lease: LeaseId,
         kill_envelope: Option<KillEnvelope>,
@@ -91,8 +79,7 @@ pub enum Response {
     ShuttingDown,
     /// Health probe reply.
     Pong { version: String },
-    /// `WaitForCapacity` resolved: headroom is currently OK on both
-    /// memory and CPU axes.
+    /// Compatibility response. Resource capacity does not restrict commands.
     CapacityOk,
     /// `WaitForCapacity` timed out (client deadline or server hard cap)
     /// before headroom recovered. The CLI surfaces this as exit 124
@@ -106,14 +93,13 @@ pub enum Response {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatusSnapshot {
     pub free_mem_gb: f64,
-    /// Memory pause floor (free-GB). Below this triggers SIGSTOP.
+    /// Retired memory threshold. Always zero in the current daemon.
     pub pause_floor_gb: f64,
-    /// Memory kill floor (free-GB). Below this triggers SIGKILL.
+    /// Retired memory threshold. Always zero in the current daemon.
     pub kill_floor_gb: f64,
-    /// Loadavg(1m) divided by nproc. > load_pause_floor triggers
-    /// CPU-side SIGSTOP. 0.0 until Slice 5 wires LoadSampler.
+    /// Loadavg(1m) divided by core count. Telemetry only.
     pub load_per_core: f64,
-    /// Threshold for `load_per_core` that triggers pause.
+    /// Retired load threshold. Always zero in the current daemon.
     pub load_pause_floor: f64,
     /// Legacy field kept for older `cap status` clients. Mirrors
     /// `pause_floor_gb`; new code should read `pause_floor_gb`.
@@ -131,7 +117,7 @@ pub enum LeaseState {
     Pending,
     /// Child is running.
     Running,
-    /// Child is SIGSTOPped by the throttler.
+    /// Retired pause state, retained for older daemon responses.
     Paused,
     /// Throttler has sent SIGTERM and is waiting `kill_grace_secs`
     /// before escalating to SIGKILL. Excluded from victim re-selection.
