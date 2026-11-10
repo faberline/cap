@@ -3,7 +3,7 @@ resolver = "2"
 members = ["."]
 
 [workspace.package]
-authors = ["Chris Cheng <chris.cheng.c4@gmail.com>"]
+authors = ["Faberline contributors"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/faberline/cap"
